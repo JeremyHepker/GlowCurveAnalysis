@@ -16,7 +16,7 @@ Possible further development -
     
 ## First order kinetics implmentation
 
-I(T)=Im*b^(b/(b-1))*expv*((b-1)*(1-xa)*(T/Tm)^2*expv+Zm)^(-b/(b-1))
+I(T)=Im*b^(b/(b-1))*expv*((b-1)*(1-xa)*(T/Tm)^2*expv+Zm)^(-b/(b-1)) <br />
 xa=2*k*T/E
 xb=2*k*Tm/E
 expv=exp(E/(k*T)*(T-Tm)/Tm)
