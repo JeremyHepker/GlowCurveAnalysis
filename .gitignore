@@ -32,3 +32,8 @@ Temporary Items
 
 # Compiled C++ files
 *.out
+
+# Ignore `bin` dir
+bin/
+# or
+*/bin/*
