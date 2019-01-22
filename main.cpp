@@ -11,13 +11,15 @@
 #include "Usage.h"
 #include <string>
 #include "Standard Mode.hpp"
+#include "Analytical Mode.hpp"
 using namespace std;
 vector<string> getArguments(int argc,char * argv[]) {
     if(argc < 2){
         cout<<usage<<endl; 
     }
     string input;
-    string mode,filename,out_filename = "GCA_output",verbose = "false", model = "FOK";
+    string mode,filename,out_filename = "GCA_output",verbose = "false", model = "FOK",material;
+    vector<string> peaks;
     // These are used with getopt_long()
     opterr = true; // Give us help with errors
     int choice;
@@ -27,6 +29,7 @@ vector<string> getArguments(int argc,char * argv[]) {
         { "filename", required_argument,      nullptr, 'f' },
         { "model",   required_argument,      nullptr, 'l' },
         { "material", required_argument,      nullptr, 's' },
+        { "peaks",   required_argument,      nullptr, 'p' },
         { "output",   required_argument,      nullptr, 'o' },
         { "verbose", no_argument,            nullptr, 'v' },
         { "help",   no_argument,            nullptr, 'h' },
@@ -34,7 +37,7 @@ vector<string> getArguments(int argc,char * argv[]) {
     };
     
     // TODO: Fill in the double quotes, to match the mode and help options.
-    while ((choice = getopt_long(argc, argv, "m:f:l:s:o:vh",long_options, &option_index)) != -1) {
+    while ((choice = getopt_long(argc, argv, "m:f:l:s:p:o:vh",long_options, &option_index)) != -1) {
         switch (choice) {
             case 'm':
                 if(strcmp(optarg,"standard")==0){
@@ -62,6 +65,12 @@ vector<string> getArguments(int argc,char * argv[]) {
                 }
                 model = optarg;
                 break;
+            case 's':
+                material = optarg;
+                break;
+            case 'p':
+                peaks = {};
+                break;
             case 'o':
                 if(string(optarg).find(".csv") != string::npos){
                     string output = optarg;
@@ -82,13 +91,13 @@ vector<string> getArguments(int argc,char * argv[]) {
                 exit(1);
         } // switch
     } // while
-    vector<string> args = {mode,filename,out_filename,model,verbose};
+    vector<string> args = {mode,filename,out_filename,model,verbose,material};
     return args;
 } // getScheme()
 
 string analytic_input(){
     string material;
-    cout<<"You have selected to use the analytical mode which deconvolves and outputs the glow peaks based on user provided information. If this is not desired enter \"exit\". Otherwise either the material being used, or the number of peaks and their approximate threshold temperatures are required"<<endl<<"Enter the number of peaks : ";
+    cout<<"You have selected to use the analytical mode which deconvolves and outputs the glow peaks based on user provided information. If this is not desired enter \"exit\". Otherwise either the material being used is required or use the -n tag"<<endl<<"Enter the number of peaks : ";
     getline(cin,material);
     return material;
 }
@@ -99,9 +108,7 @@ int main(int argc, char * argv[]) {
     if(args[0]=="standard"){
         standard stand(args[1],args[2],args[3],args[4]);
     }else if(args[0]=="analytical"){
-        cout<<"analytical"<<endl;
-        string material = analytic_input();
-        cout<<material;
+        analytic stand(args[1],args[2],args[3],args[4],args[5]);
     }else{
         cout<<"smart"<<endl;
     }
