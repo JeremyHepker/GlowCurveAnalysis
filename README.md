@@ -1,6 +1,6 @@
 # Glow Curve Analysis Software
 
-This tool is designed to automatically determine the TLD material glow curve which is being analyized, deconvolves, and outputs the glow peaks. TLD glow curve data provided by the user in a properly fromatted .csv file.
+This tool is designed to automatically determine the TLD material glow curve which is being analyized, deconvolves, and outputs the glow peaks. TLD glow curve data provided by the user in a properly formatted .csv file.
 
 ## Getting Started
 
