@@ -42,3 +42,7 @@ To date: N/A
 Optimization Ideas -
     1) Adapt material recognition in all three models, not just smart mode, for faster recognition and analysis. 
     2) ...
+
+
+## Bin Commands 
+./bin/gitupdate
