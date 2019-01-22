@@ -66,13 +66,12 @@ Add additional notes about how to deploy this on a live system
 
 ## Versioning
 
-We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/your/project/tags). 
 
 ## Authors
 
-* **Jeremy Hepker** - *Initial work* - [PurpleBooth](https://github.com/PurpleBooth)
+* **Jeremy Hepker** - *Initial work* - 
 
-See also the list of [contributors](https://github.com/your/project/contributors) who participated in this project.
+See also the list of [contributors] who participated in this project.
 
 ## License
 
@@ -80,7 +79,7 @@ This project is licensed under the <License> - see the [LICENSE.md](LICENSE.md) 
 
 ## Acknowledgments
 
-* Hat tip to anyone whose code was used
+* Hat tip to anyone whose helped
 * Inspiration
 * etc
 
