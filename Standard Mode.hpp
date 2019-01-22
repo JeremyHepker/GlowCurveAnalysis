@@ -16,22 +16,24 @@
 using namespace std;
 class standard{
 private:
-    string filename, out_filename, date_time, filename_str;
+    string date_time, filename_str;
     vector<int> raw_temp_data, raw_count_data, raw_time_data;
     int counts_total;
     float heat_rate; 
-    bool time;
+    bool time = false, verbose = false;
 public:
-    standard();
+    standard(string &filename,string &out_filename, string &model_type, string &verbose_mode);
+    
     //This function displays the software logo, prints the usage, and pompts the user
     //to re-run the program with proper arguments.
     void greeting();
     
+    
     //This function reads in the .xls file and parses the data into vector of coordinate pairs.
-    void read(string filename);
+    void read(string &filename);
     
     //This is a function to write the output to a new CSV file.
-    void write(string out_filename);
+    void write(string &out_filename);
     
     //This function calculates the rate at which the TLD was heating. 
     void heat_rate_calc();
