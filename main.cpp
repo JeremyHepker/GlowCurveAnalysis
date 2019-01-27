@@ -8,77 +8,54 @@
 
 #include <iostream>
 #include <getopt.h>
-#include "Usage.h"
 #include <string>
+#include <locale>
+#include "Usage.h"
 #include "Standard Mode.hpp"
 #include "Analytical Mode.hpp"
 using namespace std;
 vector<string> getArguments(int argc,char * argv[]) {
-    if(argc < 2){
-        cout<<usage<<endl; 
-    }
-    string input;
-    string mode,filename,out_filename = "GCA_output",verbose = "false", model = "FOK",material;
-    vector<string> peaks;
-    // These are used with getopt_long()
-    opterr = true; // Give us help with errors
-    int choice;
-    int option_index = 0;
+    string input,mode,filename,out_filename = "",verbose = "false", model = "";
+    opterr = true;
+    int choice,option_index = 0;
     option long_options[] = {
         { "mode",    required_argument,      nullptr, 'm' },
         { "filename", required_argument,      nullptr, 'f' },
         { "model",   required_argument,      nullptr, 'l' },
-        { "material", required_argument,      nullptr, 's' },
-        { "peaks",   required_argument,      nullptr, 'p' },
         { "output",   required_argument,      nullptr, 'o' },
         { "verbose", no_argument,            nullptr, 'v' },
         { "help",   no_argument,            nullptr, 'h' },
         { nullptr, 0,                     nullptr, '\0'}
     };
-    
-    // TODO: Fill in the double quotes, to match the mode and help options.
-    while ((choice = getopt_long(argc, argv, "m:f:l:s:p:o:vh",long_options, &option_index)) != -1) {
+    while ((choice = getopt_long(argc, argv, "m:f:l:o:vh",long_options, &option_index)) != -1) {
         switch (choice) {
             case 'm':
-                if(strcmp(optarg,"standard")==0){
-                    mode = "standard";
-                }else if(strcmp(optarg,"analytical")==0){
-                    mode = "analytical";
-                }else if(strcmp(optarg,"smart")==0){
-                    mode = "smart";
+                mode = optarg;
+                if(mode == "standard" || mode == "smart" || mode == "analytical"){
+                    break;
                 }else{
-                    cerr<<"The mode provided was invalide, please select one of the folling: standard, analytical, or smart."<<endl<< "Example : -m standard"<<endl<<"Example : -m analytical"<<endl<<"Example : -m smart"<<endl;
+                    cerr<<"Invalid Argument Provided : -m <mode>"<<endl;
+                    cerr<<usage;
                     exit(0);
                 }
-                break;
             case 'f':
                 if(string(optarg).find(".csv") == string::npos){
-                    cerr<<"Invalide input file, please ensure file is of the extension .csv"<<"Example : -f <filename>.csv"<<endl<<"If error persists include full file path"<<endl<<"Example : -f ~/<Filename>.csv"<<endl;
+                    cerr<<"Invalid Input Provided : -f <filename.csv>"<<endl;
+                    cerr<<usage;
                     exit(0);
                 }
                 filename = optarg;
                 break;
             case 'l':
                 if(strcmp(optarg,"FOK")!=0 && strcmp(optarg,"OTOR")!=0){
-                    cerr<<"Invalide model input, please select either FOK (first order kinetics) or OTOR (OTOR level)"<<endl<<"Example : -l FOK"<<endl<<"Example : -l OTOR"<<endl;
+                    cerr<<"Invalid Input Provided : -l <model>"<<endl;
+                    cerr<<usage;
                     exit(0);
                 }
                 model = optarg;
                 break;
-            case 's':
-                material = optarg;
-                break;
-            case 'p':
-                peaks = {};
-                break;
             case 'o':
-                if(string(optarg).find(".csv") != string::npos){
-                    string output = optarg;
-                    output.erase(string(optarg).find(".csv"),4);
-                    out_filename = output;
-                }else{
-                    out_filename = optarg;
-                }
+                out_filename = optarg;
                 break;
             case 'v':
                 verbose = "true";
@@ -87,33 +64,58 @@ vector<string> getArguments(int argc,char * argv[]) {
                 cout<<usage<<endl;
                 break;
             default:
-                cerr << "Invalid user input, see -h or --help for usage." << endl;
+                cerr << "Invalid Input Provided"<< endl;
+                cerr<<usage<<endl;
                 exit(1);
-        } // switch
-    } // while
-    vector<string> args = {mode,filename,out_filename,model,verbose,material};
+        }
+    }
+    vector<string> args = {mode,filename,out_filename,model,verbose};
     return args;
 } // getScheme()
-
-string analytic_input(){
-    string material;
-    cout<<"You have selected to use the analytical mode which deconvolves and outputs the glow peaks based on user provided information. If this is not desired enter \"exit\". Otherwise either the material being used is required or use the -n tag"<<endl<<"Enter the number of peaks : ";
-    getline(cin,material);
+int material_intake(){
+    int material = -1;
+    for(size_t i = 0; i <= materials.size()-1; ++i){
+        cout<<"["<<i<<"] "<<materials[i]<< endl;
+    }
+    cout<<"Enter Material Index: ";
+    cin>>material;
+    while(material < 0 || material > 8){
+        cerr<<"Enter a valid material."<<endl;
+        material = material_intake();
+    }
     return material;
 }
-
+vector<pair<int, int>> peak_intake(){
+    vector<pair<int, int>> thresholds;
+    int peaks =0;
+    cout<<"Enter Number of Peaks: ";
+    cin>> peaks;
+    return thresholds;
+}
 int main(int argc, char * argv[]) {
-    //standard stan;
     vector<string> args = getArguments(argc, argv);
+    
     if(args[0]=="standard"){
-        standard stand(args[1],args[2],args[3],args[4]);
+        //standard stand(args[1],args[2],args[3],args[4]);
     }else if(args[0]=="analytical"){
-        analytic stand(args[1],args[2],args[3],args[4],args[5]);
+        string choice;
+        cout<<"You have selected Analytical mode, if this was incorrect enter 'quit'"<<endl;
+        cout<<"Enter either:"<<endl<<"[1] To select the material which was analysized"<<endl;
+        cout<<"[2] To enter number of peaks and threashhold temperatures"<<endl;
+        cout<<"Enter option here: ";
+        cin>>choice;
+        if(choice == "quit"){
+            cout<< usage;
+            exit(1);
+        }else if(choice == "2"){
+            cout<<"2";
+        }else{
+            int material = material_intake();
+        }
+        //analytic stand(args[1],args[2],args[3],args[4],args[5]);
     }else{
         cout<<"smart"<<endl;
     }
-    cout<<"we did it";
     return 0;
     
 }
-
