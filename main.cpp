@@ -11,8 +11,8 @@
 #include <string>
 #include <locale>
 #include "Usage.h"
-#include "Standard Mode.hpp"
-#include "Analytical Mode.hpp"
+#include "File_Manager.hpp"
+#include "First_Order_kinetics.hpp"
 using namespace std;
 vector<string> getArguments(int argc,char * argv[]) {
     string input,mode,filename,out_filename = "",verbose = "false", model = "";
@@ -94,7 +94,8 @@ vector<pair<int, int>> peak_intake(){
 }
 int main(int argc, char * argv[]) {
     vector<string> args = getArguments(argc, argv);
-    
+    int material = -1;
+    vector<pair<int, int>> thresholds; 
     if(args[0]=="standard"){
         //standard stand(args[1],args[2],args[3],args[4]);
     }else if(args[0]=="analytical"){
@@ -110,11 +111,15 @@ int main(int argc, char * argv[]) {
         }else if(choice == "2"){
             cout<<"2";
         }else{
-            int material = material_intake();
+            //material = material_intake();
         }
-        //analytic stand(args[1],args[2],args[3],args[4],args[5]);
+        
     }else{
-        cout<<"smart"<<endl;
+        File_Manager manager(args[1]);
+        pair<vector<int>, vector<double>> data = manager.read();
+        First_Order_Kinetics FOK_Model(data);
+        vector<vector<double>> peaks = FOK_Model.glow_curve();
+        manager.write(peaks, "output");
     }
     return 0;
     

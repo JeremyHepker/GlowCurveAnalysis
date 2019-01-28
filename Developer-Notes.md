@@ -46,3 +46,6 @@ Optimization Ideas -<br />
 
 ## Bin Commands 
 ./bin/gitupdate
+
+## Resources
+http://www.iram.fr/IRAMFR/GILDAS/doc/html/map-html/node37.html
