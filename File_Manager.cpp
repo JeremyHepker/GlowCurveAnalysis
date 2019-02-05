@@ -8,6 +8,8 @@
 
 #include "File_Manager.hpp"
 #include "CSV_iterator.cpp"
+#include <iomanip>
+
 using namespace std;
 File_Manager::File_Manager(std::string given_filename):filename(given_filename){};
 
@@ -55,10 +57,18 @@ void File_Manager::write(vector<vector<double>> glow_curves, string output_name)
         cerr<<"Could not open output file : "<<output_name<<endl;
         exit(1);
     }
+    file<<"temp,count_original";
+    for(int j = 0; j<glow_curves.size();++j){
+        string ster = "count_" + to_string(j);
+        file<<","<<ster;
+    }
+    file<<",\n";
+    file.setf(ios_base::fixed);
+    file<<setprecision(5);
     for(int i = 0; i<raw_temp_data.size();++i){
         file << raw_temp_data[i]<<","<<raw_count_data[i];
         for(int j = 0; j<glow_curves.size();++j){
-            file<<","<<glow_curves[j][i];
+            file<<","<<double(glow_curves[j][i]);
         }
         file<<",\n";
     }

@@ -105,6 +105,8 @@ int main(int argc, char * argv[]) {
         cout<<"[2] To enter number of peaks and threashhold temperatures"<<endl;
         cout<<"Enter option here: ";
         cin>>choice;
+        material = material_intake();
+        cout<< material;
         if(choice == "quit"){
             cout<< usage;
             exit(1);

@@ -1,11 +1,13 @@
 #include <vector>
 #include <string>
+
 std::vector<std::string> materials =
     {
     "TLD-100  : Lithium Fluoride Magnesium Titanium(LiF: Mg,Ti)",
     "TLD-200  : Calcium Fluoride Dyprosium (CaF2: Dy)",
     "TLD-300  : Calcium Fluoride Thulium (CaF2:Tm)",
     "TLD-400  : Calcium Fluoride Manganese (CaF2:Mn)",
+    "TLD-500  :",
     "TLD-600  : Lithium Fluoride Magnesium Titanium (Lithium isotope) (LiF:Mg,Ti(Li-6))",
     "TLD-700  : Lithium Fluoride Magnesium Titanium (Lithium isotope) (LiF:Mg,Ti(Li-7))",
     "TLD-100H : High-Sensitivity Lithium Fluoride Magnesium Copper (Lithium isotope) (LiF:Mg,Cu,P)",

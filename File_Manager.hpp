@@ -25,13 +25,14 @@ private:
 public:
     
     File_Manager(std::string filename);
+    File_Manager();
     
     //This function reads in the .csv file and parses the data into vector of coordinate pairs.
     std::pair<std::vector<int>,std::vector<double>> read();
     
     //This is a function to write the output to a new CSV file.
     void write(std::vector<std::vector<double>> glow_curves, std::string output_name);
-    
+
     double temp_rate();
 };
 
