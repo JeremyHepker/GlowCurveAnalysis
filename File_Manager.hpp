@@ -11,6 +11,7 @@
 
 #include <stdio.h>
 #include <string>
+#include <cmath>
 #include <vector>
 #include <fstream>
 #include <algorithm>
@@ -34,6 +35,12 @@ public:
     void write(std::vector<std::vector<double>> glow_curves, std::string output_name);
 
     double temp_rate();
+    
+    std::vector<double> gaussSmoothen(std::vector<double> values, double sigma, int samples);
+    std::vector<double> gaussKernel(int samples, double sigma);
+    double gauss(double sigma, double x);
+    ~File_Manager();
+    
 };
 
 

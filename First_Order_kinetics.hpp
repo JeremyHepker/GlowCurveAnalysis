@@ -14,23 +14,30 @@
 #include <fstream>
 #include <iterator>
 #include <algorithm>
+#include <numeric>
 #include <cmath>
 #include <iostream>
 #include <stdlib.h>
 #include <iomanip>
 #include <stdio.h>
-
+#include <cstdlib>
 class First_Order_Kinetics{
 private:
     std::vector<int> temp_data;
     std::vector<double> count_data;
-    std::vector<std::pair<int, int>> temp_range = {{450,500},{420,470},{390,450},{300,450}};
+    double k = .000086173303;
 public:
-    First_Order_Kinetics(std::pair<std::vector<int>,std::vector<double>> &data);
-    double activation_energy(std::vector<double> &data);
+    First_Order_Kinetics(std::pair<std::vector<int>,std::vector<double>>);
+    double activation_energy(std::vector<double> &data, bool first);
     double frequency_factor();
     std::vector<std::vector<double>> glow_curve();
-    std::vector<double> kernal(int max_index,double E,std::vector<int> &range);
+    double gauss_newton(std::vector<double> const &temp,int max_index,double E,double Tm,double Im);
+    std::vector<double> kernal(double E,double Tm,double Im,double dm);
+    std::vector<std::vector<double>> jacobian(int max_index,int TL_index,int TR_index,double E,double Tm,double Im);
+    void transpose(std::vector<std::vector<double>> const &A,std::vector<std::vector<double>> &B, int n, int m);
+    std::vector<std::vector<double>> multiply(std::vector<std::vector<double>> const &A,std::vector<std::vector<double>> const &B);
+    void invert(std::vector<std::vector<double>> &A);
+
 };
 
 #endif /* First_Order_kinetics_hpp */

@@ -117,11 +117,13 @@ int main(int argc, char * argv[]) {
         }
         
     }else{
-        File_Manager manager(args[1]);
-        pair<vector<int>, vector<double>> data = manager.read();
-        First_Order_Kinetics FOK_Model(data);
-        vector<vector<double>> peaks = FOK_Model.glow_curve();
-        manager.write(peaks, "output");
+        for(int i = 0; i < 1; ++i){
+            File_Manager manager = *new File_Manager(args[1]);
+            pair<vector<int>, vector<double>> data = manager.read();
+            First_Order_Kinetics FOK_Model = *new First_Order_Kinetics(data);
+            vector<vector<double>> peaks = FOK_Model.glow_curve();
+            manager.write(peaks, "output_"+to_string(i));
+        }
     }
     return 0;
     
