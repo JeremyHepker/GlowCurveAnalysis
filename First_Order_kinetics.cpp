@@ -10,19 +10,8 @@
 using namespace std;
 First_Order_Kinetics::First_Order_Kinetics(std::pair<std::vector<int>,std::vector<double>> data):count_data(data.second),temp_data(data.first){
 };
-double First_Order_Kinetics::activation_energy(vector<double> &data, bool first){
-    vector<double>::iterator TR = data.end();
+double First_Order_Kinetics::activation_energy(vector<double> &data,int TL_index,int TM_index,int TR_index){
     double m_g = 0.0,E = 0.0,C = 0.0, K = .000086173303,b = 0.0,t = 0.0,d = 0.0,w = 0.0;
-    vector<double>::iterator TM = max_element(data.begin(), data.end());
-    double half_intensity = *TM/2.0;
-    if(first){
-        TR = upper_bound(TM,data.end(),half_intensity,greater<double>());
-    }else{
-        TR = upper_bound(data.begin(),TM,half_intensity,less<double>());
-    }
-    int TM_index = int(TM-data.begin());
-    int TR_index = int(TR-data.begin());
-    int TL_index = int(TM_index - (TR-TM));
     
     double T_M = double(temp_data[TM_index])+273.15;
     double T_1 = double(temp_data[TL_index])+273.15;
@@ -47,17 +36,27 @@ vector<vector<double>> First_Order_Kinetics::glow_curve(){
     bool first =true;
     int c = 0;
     while (c< 4){
-        double E = activation_energy(curve,first);
-        int max = int(max_element(curve.begin(), curve.end()) - curve.begin());
-        double Tm = double(temp_data[max])+273.15;
-        double Im = double(count_data[max]);
-        double min_E=E,min_T = Tm, min_t_error = INFINITY,min_E_error =INFINITY;
-        double min_Im = Im, dm=0.0;
+        vector<double>::iterator TR = curve.end(),TL = curve.end();
+        vector<double>::iterator TM = max_element(curve.begin(), curve.end());
+        int TM_index, TR_index, TL_index;
+        double half_intensity = *TM/2.0;
+        if(first){
+            TR = upper_bound(TM,curve.end(),half_intensity,greater<double>());
+            TM_index = int(TM-curve.begin());
+            TR_index = int(TR-curve.begin());
+            TL_index = int(TM_index - (TR-TM));
+        }else{
+            TL = upper_bound(curve.begin(),TM,half_intensity,less<double>());
+            TM_index = int(TM-curve.begin());
+            TL_index = int(TL-curve.begin());
+            TR_index = int(TM_index + (TM-TL));
+        }
+        double Tm = double(temp_data[TM_index])+273.15;
+        double Im = double(count_data[TM_index]);
+        double E = activation_energy(curve,TL_index,TM_index,TR_index);
+        double min_t_error = INFINITY,min_E_error =INFINITY;
+        double min_Im = Im, dm=0.0,min_E=E,min_T = Tm;
         vector<double> temp;
-        int half_intensity = Im/2;
-        vector<double>::iterator TR = lower_bound(count_data.begin()+max,count_data.end(),half_intensity,greater<double>());
-        int TR_index = int(TR-count_data.begin());
-        int TL_index = int(max - (TR_index-max));
         
         for(double inc = double(temp_data[TL_index]); inc < temp_data[TR_index]; inc += .1){
             vector<int>::iterator t_Im = lower_bound(temp_data.begin()+TL_index,temp_data.begin()+TR_index,int(inc),less<int>());
@@ -66,7 +65,7 @@ vector<vector<double>> First_Order_Kinetics::glow_curve(){
             temp =kernal(min_E,inc+273.15,temp_Im,dm);
             vector<double> r(temp.size(), 0);
             for(int i = TL_index; i < TR_index; ++i){
-                r[i] += temp[i] - count_data[i];
+                r[i] += temp[i] - curve[i];
             }
             double sum = 0.0;
             for(auto x:r){
@@ -76,20 +75,17 @@ vector<vector<double>> First_Order_Kinetics::glow_curve(){
                 min_t_error =sqrt(sum);
                 min_Im = temp_Im;
                 min_T = inc+273.15;
+                
             }
-            //residual.push_back(temp);
         }
-        dm = (2.0*k*min_T)/min_E;
-        temp =kernal(min_E,min_T,min_Im,dm);
-        //residual.push_back(temp);
-         
+        
         for(double inc = E*(.20); inc < E*(1.80); inc += .01){
             //Calculate the residual function r(x)
-            double dm = (2.0*k*Tm)/min_E;
+            double dm = (2.0*k*min_T)/min_E;
             temp =kernal(inc,Tm,Im,dm);
             vector<double> r(temp.size(), 0);
             for(int i = TL_index; i < TR_index; ++i){
-                r[i] += temp[i] - count_data[i];
+                r[i] += temp[i] - curve[i];
             }
             double sum = 0.0;
             for(auto x:r){
@@ -99,18 +95,33 @@ vector<vector<double>> First_Order_Kinetics::glow_curve(){
                 min_E_error = sqrt(sum);
                 min_E = inc;
             }
-            if(c ==1) residual.push_back(temp);
         }
-        //E = gauss_newton(temp,max_index,E,Tm,Im);
         //push back the iteration
         dm = (2.0*k*min_T)/min_E;
         temp =kernal(min_E,min_T,min_Im,dm);
-        if(c ==1)residual.push_back(temp);
-        transform(curve.begin()+TL_index,curve.end(),temp.begin()+TL_index,curve.begin()+TL_index,minus<double>());
-        //if(c ==1)residual.push_back(curve);
+        double damper = double(temp_data.back()/double(temp_data.size()));
+        if(damper>0.4){
+            damper = .01;
+        }else if(damper<0.2){
+            damper = .1;
+        }else{
+            damper = 0.1;
+        }
+        int plus = int(ceil(double(TL_index) * damper));
+        transform(curve.begin()+TL_index-plus,curve.end(),temp.begin()+TL_index-plus,curve.begin()+TL_index-plus,minus<double>());
+        //residual.push_back(temp);
+        if( c==0)residual.push_back(temp);
+        if(c == 4 )residual.push_back(curve);
+
+        /*
+         int plus = int(ceil(double(temp_data[TL_index]) * 0.01));
+         plus = int(distance(temp_data.begin(), find(temp_data.begin(), temp_data.end(), temp_data[TL_index]-plus)));
+         transform(curve.begin()+plus,curve.end(),temp.begin()+plus,curve.begin()+plus,minus<double>());
+         */
         first = false;
         ++c;
     }
+
     return residual;
 };
 

@@ -1,6 +1,8 @@
 # Run a regression test
 test: main.exe
-	./GCA -f test_1.csv -m smart
+	./GCA -f test_1.csv -m smart -o output_0
+	./GCA -f test_2.csv -m smart -o output_1
+	./GCA -f test_3.csv -m smart -o output_2
 
 # Compile the main executable
 main.exe: main.cpp First_Order_Kinetics.cpp File_Manager.cpp CSV_iterator.cpp

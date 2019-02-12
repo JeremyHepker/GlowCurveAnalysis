@@ -122,7 +122,7 @@ int main(int argc, char * argv[]) {
             pair<vector<int>, vector<double>> data = manager.read();
             First_Order_Kinetics FOK_Model = *new First_Order_Kinetics(data);
             vector<vector<double>> peaks = FOK_Model.glow_curve();
-            manager.write(peaks, "output_"+to_string(i));
+            manager.write(peaks, args[2]);
         }
     }
     return 0;

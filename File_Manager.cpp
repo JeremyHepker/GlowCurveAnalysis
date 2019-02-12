@@ -23,10 +23,10 @@ pair<vector<int>,vector<double>> File_Manager::read(){
     }
     //Parse the input file header data.
     string line;
-    getline(file, line);
+    getline(file, line,',');
     while(line.find("Counts") == string::npos){
         header += (line += "\n");
-        getline(file, line);
+        getline(file, line,',');
     }
     line += "\n";
     header += line;

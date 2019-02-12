@@ -28,7 +28,7 @@ private:
     double k = .000086173303;
 public:
     First_Order_Kinetics(std::pair<std::vector<int>,std::vector<double>>);
-    double activation_energy(std::vector<double> &data, bool first);
+    double activation_energy(std::vector<double> &data,int TL_index,int TM_index,int TR_index);
     double frequency_factor();
     std::vector<std::vector<double>> glow_curve();
     double gauss_newton(std::vector<double> const &temp,int max_index,double E,double Tm,double Im);
