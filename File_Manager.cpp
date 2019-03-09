@@ -31,19 +31,17 @@ pair<vector<int>,vector<double>> File_Manager::read(){
     line += "\n";
     header += line;
     //read in the csv file and parse date into two raw input vectors.
+    getline(file, line,'\r');
+    getline(file, line,'\r');
     auto i = csv_iterator<int>( file );
     ++i;
-    raw_temp_data.push_back(*i);
-    ++i;
-    raw_count_data.push_back(*i);
-    ++i;
-    total_counts = *i;
+    cout<<"while loop"<<endl;
     while(file){
-        ++i;
         raw_temp_data.push_back(*i);
         ++i;
         raw_count_data.push_back(*i);
         ++i;
+        if(!file.eof()) ++i;
     }
     file.close();
     //raw_count_data = gaussSmoothen(raw_count_data,10.0, int(raw_count_data.size())-1);
@@ -68,10 +66,8 @@ void File_Manager::write(vector<vector<double>> glow_curves, string output_name)
     file<<setprecision(5);
     for(int i = 0; i<raw_temp_data.size();++i){
         file << raw_temp_data[i]<<","<<raw_count_data[i];
-        if(i < glow_curves[1].size()){
-            for(int j = 0; j<glow_curves.size();++j){
-                file<<","<<double(glow_curves[j][i]);
-            }
+        for(int j = 0; j<glow_curves.size();++j){
+            file<<","<<double(glow_curves[j][i]);
         }
         file<<",\n";
     }
