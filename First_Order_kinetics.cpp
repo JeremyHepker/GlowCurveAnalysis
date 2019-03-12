@@ -11,7 +11,6 @@ using namespace std;
 First_Order_Kinetics::First_Order_Kinetics(std::pair<std::vector<int>,std::vector<double>> data):count_data(data.second),temp_data(data.first.begin(),data.first.end()){
 
 };
-
 /*---------------------------------Activation Energy---------------------------------------*/
 double First_Order_Kinetics::activation_energy(int TL_index,int TM_index,int TR_index){
     double m_g = 0.0,E = 0.0,C = 0.0, K = .000086173303,b = 0.0,t = 0.0,d = 0.0,w = 0.0;
@@ -43,71 +42,75 @@ void First_Order_Kinetics::glow_curve(){
     double curve_sum = std::accumulate(curve.begin(), curve.end(), 0);
     double curve_sum_start=curve_sum;
     vector<double> sum(curve.size(), 0.0);
+    vector<vector<double>> updated_params;
     vector<vector<double>> inputs(int(temp_data.size()), vector<double>(1,1.0));
     for(int i=0; i < int(temp_data.size()); i++) {
         inputs[i][0] = double(temp_data[i]);
     }
-    while (curve_sum > curve_sum_start*.05){
-        //Find the range of the curve
-        TL = curve.begin();
-        TR = curve.end();
-        TM = max_element(TL, TR);
-        double half_intensity = *TM/2.0;
-        TL = lower_bound(TL,TM,half_intensity,less<double>());
-        TR = lower_bound(TM,TR,half_intensity,greater<double>());
-        int diff1 = int(TM - TL);
-        int diff2 = int(TR - TM);
-        if(TR == curve.end()) diff2 += diff1;
-        if(diff1 <= diff2){
-            TM_index = int(TM - curve.begin());
-            TL_index = int(TL - curve.begin());
-            TR_index = int(TM_index + (TM_index - TL_index));
-        }else{
-            TM_index = int(TM - curve.begin());
-            TR_index = int(TR - curve.begin());
-            TL_index = int(TM_index - (TR_index - TM_index));
+    double FOM = 1;
+    
+    while(FOM == 1){
+        while (curve_sum > curve_sum_start*.05){
+            //Find the range of the curve
+            TL = curve.begin();
+            TR = curve.end();
+            TM = max_element(TL, TR);
+            double half_intensity = *TM/2.0;
+            TL = lower_bound(TL,TM,half_intensity,less<double>());
+            TR = lower_bound(TM,TR,half_intensity,greater<double>());
+            int diff1 = int(TM - TL);
+            int diff2 = int(TR - TM);
+            if(TR == curve.end()) diff2 += diff1;
+            if(diff1 <= diff2){
+                TM_index = int(TM - curve.begin());
+                TL_index = int(TL - curve.begin());
+                TR_index = int(TM_index + (TM_index - TL_index));
+            }else{
+                TM_index = int(TM - curve.begin());
+                TR_index = int(TR - curve.begin());
+                TL_index = int(TM_index - (TR_index - TM_index));
+            }
+            if(TR_index > int(curve.size())){
+                TR_index = int(curve.size())-1;
+            }
+            //Caluclate Initial Guess for both variable
+            double Tm = double(temp_data[TM_index]);
+            double E = activation_energy(TL_index,TM_index,TR_index);
+            
+            vector<vector<double>> outputs(int(temp_data.size()),vector<double>(1,1.0));
+            
+            for(int i=0; i < int(temp_data.size()); i++) {
+                outputs[i][0] = curve[i];
+            }
+            
+            // Guess the parameters, it should be close to the true value, else it can fail
+            vector<double> params = {E,Tm,double(TL_index),double(TR_index)};
+            cout<<"----------------Curve: "<<c+1<<"----------------"<<endl;
+            LevenbergMarquardt(inputs,outputs, params);
+            
+            glow_curves.push_back(vector<double>(temp_data.size(),0));
+            for(int i = 0; i < int(temp_data.size()); ++i ){
+                vector<double> input(1,0.0);
+                input[0]= double(temp_data[i]);
+                glow_curves[c][i] = Func(input,params);
+            }
+            transform(glow_curves[c].begin(),glow_curves[c].end(),sum.begin(),sum.begin(),plus<double>());
+            transform(curve.begin(),curve.end(),sum.begin(),curve.begin(),minus<double>());
+            
+            for(int i = 0; i < int(temp_data.size());++i){
+                if(curve[i]<0.0) curve[i] = 0.0;
+                if(i > TM_index && c == 0) curve[i] = 0.0;
+                if(i > TM_index && i < TR_index) curve[i] = 0.0;
+            }
+            ++c;
+            curve_sum = accumulate(curve.begin(), curve.end(), 0);
         }
-        if(TR_index > int(curve.size())){
-            TR_index = int(curve.size())-1;
+        double integral = accumulate(sum.begin(), sum.end(), 0);
+        for(int i = 0; i < int(curve.size()); ++i){
+            FOM += abs(count_data[i] - sum[i])/integral;
         }
-        //Caluclate Initial Guess for both variable
-        double Tm = double(temp_data[TM_index]);
-        double E = activation_energy(TL_index,TM_index,TR_index);
-        
-        //COllect data laying within the range
-        vector<vector<double>> outputs(int(temp_data.size()),vector<double>(1,1.0));
-        
-        for(int i=0; i < int(temp_data.size()); i++) {
-            outputs[i][0] = curve[i];
-        }
-        
-        // Guess the parameters, it should be close to the true value, else it can fail
-        vector<double> params = {E,Tm,double(TL_index),double(TR_index)};
-        
-        cout<<"----------------Curve: "<<c+1<<"----------------"<<endl;
-        LevenbergMarquardt(inputs,outputs, params);
-        //params[1] = Tm;
-        glow_curves.push_back(vector<double>(temp_data.size(),0));
-        for(int i = 0; i < int(temp_data.size()); ++i ){
-            vector<double> input(1,0.0);
-            input[0]= double(temp_data[i]);
-            glow_curves[c][i] = Func(input,params);
-        }
-        transform(glow_curves[c].begin(),glow_curves[c].end(),sum.begin(),sum.begin(),plus<double>());
-        transform(curve.begin(),curve.end(),sum.begin(),curve.begin(),minus<double>());
-        //glow_curves.push_back(curve);
-        for(int i = 0; i < int(temp_data.size());++i){
-            if(curve[i]<0.0) curve[i] = 0.0;
-            if(i > TM_index && c == 0) curve[i] = 0.0;
-            if(i > TM_index && i < TR_index) curve[i] = 0.0;
-        }
-        
-        
-        //glow_curves.push_back(curve);
-        //++c;
-        
-        ++c;
-        curve_sum = std::accumulate(curve.begin(), curve.end(), 0);
+        cout<<FOM<<endl;
+        glow_curves.push_back(sum);
     }
 };
 
@@ -134,10 +137,10 @@ void First_Order_Kinetics::LevenbergMarquardt(const vector<vector<double>> &inpu
     vector<vector<double>> H;
     double lambda = 0.01;
     double updateJ = 1;
-    double E_lm, Tm_lm, e = 0.0;
+    double e = 0.0;
+    double E_est = params[0];
+    double Tm_est = params[1];
     for(int i = 0; i < MAX_ITER; ++i){
-        double E_est = params[0];
-        double Tm_est = params[1];
         if(updateJ == 1){
             //Evaluate the jacobian matrix at the current paramater.
             vector<double> t_params = {E_est,Tm_est};
@@ -176,33 +179,25 @@ void First_Order_Kinetics::LevenbergMarquardt(const vector<vector<double>> &inpu
         invert(H_lm, true);
         vector<double> Jf_error = vec_matrix_multi(Jf_T,error);
         vector<double> delta = vec_matrix_multi(H_lm,Jf_error);
-        E_lm = E_est + delta[1];
-        Tm_lm = Tm_est + delta[0];
-        
+        E_est += delta[1];
+        Tm_est += delta[0];
         
         //Evaluate the total distance error at the updated paramaters.
         vector<double> temp_params;
         vector<double> temp_error(input_size,0.0);
-        temp_params.push_back(E_lm);
-        temp_params.push_back(Tm_lm);
+        temp_params.push_back(E_est);
+        temp_params.push_back(Tm_est);
         bool bad = false;
         for(int j=params[2]; j < params[3]; j++) {
             input[0][0] = inputs[j][0];
             double err = outputs[j][0] - Func(input[0], temp_params);
-            if(err < -1){
-                bad = true;
-                break;
-            }
             temp_error[j] = err;
         }
         
         double temp_e = bad? e:dotProduct(temp_error, temp_error);
         
         if(temp_e < e){
-            
             lambda /= 10;
-            E_est = E_lm;
-            Tm_est = Tm_lm;
             params[0] = E_est;
             params[1] = Tm_est;
             e = temp_e;
