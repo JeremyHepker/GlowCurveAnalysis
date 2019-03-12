@@ -7,7 +7,7 @@
 Icon
 
 #output files
-output*.txt
+output_*.txt
 
 # Thumbnails
 ._*
