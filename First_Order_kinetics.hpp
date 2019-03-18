@@ -34,8 +34,7 @@ public:
     double activation_energy(int TL_index,int TM_index,int TR_index);
     double frequency_factor();
     void glow_curve();
-    //double gauss_newton(std::vector<double> const &temp,int max_index,double E,double Tm,double Im);
-    
+    std::vector<double> initial_guess(std::vector<double> &curve);
     double Func(const std::vector<double> input, const std::vector<double> params);
     
     std::vector<std::vector<double>> jacobian(int max_index,int TL_index,int TR_index,double E,double Tm,double Im);
@@ -46,7 +45,7 @@ public:
     double dotProduct(std::vector<double> A, std::vector<double> B);
     std::vector<std::vector<double>> Identity(int num, double lambda);
     std::vector<double> vec_matrix_multi(std::vector<std::vector<double>> const &A,std::vector<double> const &B);
-    void LevenbergMarquardt(const std::vector<std::vector<double>> &inputs, const std::vector<std::vector<double>> &outputs, std::vector<double> &params);
+    void LevenbergMarquardt(const std::vector<double> &inputs, const std::vector<double> &outputs, std::vector<double> &params);
     std::vector<std::vector<double>> jacobian(const std::vector<std::vector<double>> &inputs, std::vector<double> params);
     std::vector<std::vector<double>> return_glow_curve(){
         return glow_curves;

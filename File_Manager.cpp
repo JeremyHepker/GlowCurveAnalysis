@@ -28,14 +28,12 @@ pair<vector<int>,vector<double>> File_Manager::read(){
         header += (line += "\n");
         getline(file, line,',');
     }
-    line += "\n";
     header += line;
     //read in the csv file and parse date into two raw input vectors.
     getline(file, line,'\r');
     getline(file, line,'\r');
     auto i = csv_iterator<int>( file );
     ++i;
-    cout<<"while loop"<<endl;
     while(file){
         raw_temp_data.push_back(*i);
         ++i;

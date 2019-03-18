@@ -265,3 +265,372 @@ for(int j=0; j < input_size; j++) {
     //Evaluate the distance error at the current paramters.
     error[j] = outputs[j][0] - Func(input[0], params);
     }
+
+
+
+
+void First_Order_Kinetics::glow_curve(){
+    curve = count_data;
+    double FOM = 1;
+    bool first_iter = true;
+    vector<vector<double>> temp_curves;
+    vector<vector<double>> updated_params;
+    vector<double> params(4,0.0);
+    vector<vector<double>> inputs(int(temp_data.size()), vector<double>(1,1.0));
+    for(int i=0; i < int(temp_data.size()); i++) {
+        inputs[i][0] = double(temp_data[i]);
+    }
+    while(FOM > .13){
+        int c = 0;
+        FOM = 1;
+        curve = count_data;
+        double curve_sum = std::accumulate(curve.begin(), curve.end(), 0);
+        double curve_sum_start=curve_sum;
+        vector<double> sum(curve.size(), 0.0);
+        while (curve_sum > curve_sum_start*.05){
+            vector<vector<double>> outputs(int(temp_data.size()),vector<double>(1,1.0));
+            for(int i=0; i < int(temp_data.size()); i++) {
+                outputs[i][0] = curve[i];
+            }
+            
+            // Guess the parameters, it should be close to the true value, else it can fail
+            if(first_iter) params = initial_guess(curve);
+            else params = updated_params[c];
+            cout<<"----------------Curve: "<<c+1<<"----------------"<<endl;
+            LevenbergMarquardt(inputs,outputs, params);
+            
+            if(first_iter)temp_curves.push_back(vector<double>(temp_data.size(),0));
+            for(int i = 0; i < int(temp_data.size()); ++i ){
+                vector<double> input(1,0.0);
+                input[0]= double(temp_data[i]);
+                temp_curves[c][i] = Func(input,params);
+            }
+            transform(temp_curves[c].begin(),temp_curves[c].end(),sum.begin(),sum.begin(),plus<double>());
+            transform(curve.begin(),curve.end(),sum.begin(),curve.begin(),minus<double>());
+            
+            for(int i = 0; i < int(temp_data.size());++i){
+                if(curve[i]<0.0) curve[i] = 0.0;
+                int TM_index = params[2] + (params[3]-params[2]);
+                if(i > TM_index && c == 0) curve[i] = 0.0;
+                if(i > TM_index && i < params[3]) curve[i] = 0.0;
+            }
+            if(first_iter) updated_params.push_back(params);
+            else updated_params[c] = params;
+            ++c;
+            curve_sum = accumulate(curve.begin(), curve.end(), 0);
+        }
+        double integral = accumulate(sum.begin(), sum.end(), 0);
+        for(int i = 0; i < int(curve.size()); ++i){
+            FOM += abs(count_data[i] - sum[i])/integral;
+        }
+        first_iter = false;
+        cout<<FOM<<endl;
+    }
+    glow_curves = temp_curves;
+    cout<<"Final FOM " << FOM<<endl;
+};
+
+/*-------------------------First Order Kinetics Function--------------------------------*/
+vector<double> First_Order_Kinetics::initial_guess(vector<double> &curve){
+    vector<double>::iterator TR = curve.end(),TL = curve.begin(),TM = curve.end();
+    int TM_index = 0, TR_index = 0, TL_index = 0;
+    //Find the range of the curve
+    TL = curve.begin();
+    TR = curve.end();
+    TM = max_element(TL, TR);
+    double half_intensity = *TM/2.0;
+    TL = lower_bound(TL,TM,half_intensity,less<double>());
+    TR = lower_bound(TM,TR,half_intensity,greater<double>());
+    int diff1 = int(TM - TL);
+    int diff2 = int(TR - TM);
+    if(TR == curve.end()) diff2 += diff1;
+    if(diff1 <= diff2){
+        TM_index = int(TM - curve.begin());
+        TL_index = int(TL - curve.begin());
+        TR_index = int(TM_index + (TM_index - TL_index));
+    }else{
+        TM_index = int(TM - curve.begin());
+        TR_index = int(TR - curve.begin());
+        TL_index = int(TM_index - (TR_index - TM_index));
+    }
+    if(TR_index > int(curve.size())){
+        TR_index = int(curve.size())-1;
+    }
+    //Caluclate Initial Guess for both variable
+    double Tm = double(temp_data[TM_index]);
+    double E = activation_energy(TL_index,TM_index,TR_index);
+    // Guess the parameters, it should be close to the true value, else it can fail
+    vector<double> params = {E,Tm,double(TL_index),double(TR_index)};
+    return params;
+}
+
+
+
+
+void First_Order_Kinetics::LevenbergMarquardt(const vector<vector<double>> &inputs, const vector<vector<double>> &outputs, vector<double> &params){
+    int input_size = int(inputs.size());
+    int num_params = 2;
+    vector<vector<double>> Jf_T(num_params, vector<double>(input_size,0.0)); // Jacobian of Func()
+    vector<double> error(input_size,0.0);
+    vector<vector<double>> input(1, vector<double>(1,1)); // single row input
+    vector<vector<double>> H;
+    double lambda = 0.01;
+    double updateJ = 1;
+    double e = 0.0;
+    double E_est = params[0];
+    double Tm_est = params[1];
+    for(int i = 0; i < MAX_ITER; ++i){
+        if(updateJ == 1){
+            //Evaluate the jacobian matrix at the current paramater.
+            vector<double> t_params = {E_est,Tm_est};
+            //Jf_T = jacobian(inputs, params);
+            for(int j=0; j < input_size; j++) {
+                input[0][0] = inputs[j][0];
+                for(int k = 0; k < 2; ++k){
+                    Jf_T[k][j] = Deriv(input[0],t_params , k);
+                }
+                //Evaluate the distance error at the current paramters.
+                if(j > params[2] && j < params[3]){
+                    error[j] = outputs[j][0] - Func(input[0], t_params);
+                }else{
+                    error[j] = 0.0;
+                }
+            }
+            //Calculate the hessian mat
+            vector<vector<double>> Jf(Jf_T[0].size(), vector<double>(Jf_T.size(),0.0));
+            transpose(Jf_T,Jf,int(Jf_T.size()), int(Jf_T[0].size()));
+            H = multiply(Jf_T,Jf);
+            e = dotProduct(error, error);
+            
+        }
+        
+        //apply the damping factor to the hessian matrix
+        vector<vector<double>> I = Identity(num_params, lambda);
+        vector<vector<double>> H_lm(num_params, vector<double>(num_params,0.0));
+        for(int j = 0; j < int(H.size()); ++j){
+            for(int s = 0; s < int(H.size()); ++s){
+                H_lm[j][s] = H[j][s] + I[j][s];
+            }
+        }
+        
+        //Update parameters
+        invert(H_lm, true);
+        vector<double> Jf_error = vec_matrix_multi(Jf_T,error);
+        vector<double> delta = vec_matrix_multi(H_lm,Jf_error);
+        E_est += delta[1];
+        Tm_est += delta[0];
+        
+        //Evaluate the total distance error at the updated paramaters.
+        vector<double> temp_params;
+        vector<double> temp_error(input_size,0.0);
+        temp_params.push_back(E_est);
+        temp_params.push_back(Tm_est);
+        bool bad = false;
+        for(int j=params[2]; j < params[3]; j++) {
+            input[0][0] = inputs[j][0];
+            double err = outputs[j][0] - Func(input[0], temp_params);
+            temp_error[j] = err;
+        }
+        
+        double temp_e = bad? e:dotProduct(temp_error, temp_error);
+        
+        if(temp_e < e){
+            lambda /= 10;
+            params[0] = E_est;
+            params[1] = Tm_est;
+            e = temp_e;
+            updateJ = 1;
+            vector<double> temp_outputs;
+            for(int j = 0; j < int(temp_data.size()); ++j ){
+                vector<double> input;
+                input.push_back(double(temp_data[j]));
+                temp_outputs.push_back(Func(input,params));
+            }
+            //glow_curves.push_back(temp_outputs);
+        }else{
+            updateJ = 0;
+            lambda *= 10;
+        }
+    }
+}
+void First_Order_Kinetics::LevenbergMarquardt(const vector<vector<double>> &inputs, const vector<vector<double>> &outputs, vector<double> &params){
+    int input_size = int(inputs.size());
+    int num_params = 2;
+    vector<vector<double>> Jf_T(num_params, vector<double>(input_size,0.0)); // Jacobian of Func()
+    vector<double> error(input_size,0.0);
+    vector<vector<double>> input(1, vector<double>(1,1)); // single row input
+    vector<vector<double>> H;
+    double lambda = 0.01;
+    double updateJ = 1;
+    double e = 0.0;
+    double FOM = 0.0;
+    double E_est = params[0];
+    double Tm_est = params[1];
+    for(int i = 0; i < MAX_ITER; ++i){
+        if(updateJ == 1){
+            //Evaluate the jacobian matrix at the current paramater.
+            vector<double> t_params = {E_est,Tm_est};
+            //Jf_T = jacobian(inputs, params);
+            for(int j=0; j < input_size; j++) {
+                input[0][0] = inputs[j][0];
+                for(int k = 0; k < 2; ++k){
+                    Jf_T[k][j] = Deriv(input[0],t_params , k);
+                }
+                //Evaluate the distance error at the current paramters.
+                if( j>params[2] && j < params[3]) {
+                    error[j] = Func(input[0], t_params);
+                }else{
+                    error[j] = 0.0;
+                }
+                double integral = accumulate(error.begin(), error.end(), 0);
+                if(j>params[2] && j < params[3]) {
+                    FOM += abs(outputs[j][0] - error[j])/integral;
+                }
+            }
+            //Calculate the hessian mat
+            vector<vector<double>> Jf(Jf_T[0].size(), vector<double>(Jf_T.size(),0.0));
+            transpose(Jf_T,Jf,int(Jf_T.size()), int(Jf_T[0].size()));
+            H = multiply(Jf_T,Jf);
+            //e = dotProduct(error, error);
+        }
+        
+        //apply the damping factor to the hessian matrix
+        vector<vector<double>> I = Identity(num_params, lambda);
+        vector<vector<double>> H_lm(num_params, vector<double>(num_params,0.0));
+        for(int j = 0; j < int(H.size()); ++j){
+            for(int s = 0; s < int(H.size()); ++s){
+                H_lm[j][s] = H[j][s] + I[j][s];
+            }
+        }
+        
+        //Update parameters
+        invert(H_lm, true);
+        vector<double> Jf_error = vec_matrix_multi(Jf_T,error);
+        vector<double> delta = vec_matrix_multi(H_lm,Jf_error);
+        E_est += delta[1];
+        Tm_est += delta[0];
+        
+        //Evaluate the total distance error at the updated paramaters.
+        vector<double> temp_params;
+        vector<double> temp_error(input_size,0.0);
+        temp_params.push_back(E_est);
+        temp_params.push_back(Tm_est);
+        //bool bad = false;
+        for(int j=params[2]; j < params[3]; j++) {
+            input[0][0] = inputs[j][0];
+            temp_error[j] = Func(input[0], temp_params);
+        }
+        double integral = accumulate(temp_error.begin(), temp_error.end(), 0);
+        double FOM_temp = 0.0;
+        for(int j=params[2]; j < params[3]; j++) {
+            input[0][0] = inputs[j][0];
+            FOM_temp += abs(outputs[j][0] - temp_error[j])/integral;
+        }
+        //double temp_e = bad? e:dotProduct(temp_error, temp_error);
+        
+        if(FOM_temp <  FOM){
+            cout<< FOM<<" "<< FOM_temp<<endl;
+            lambda /= 10;
+            params[0] = E_est;
+            params[1] = Tm_est;
+            //e = temp_e;
+            updateJ = 1;
+            vector<double> temp_outputs;
+            for(int j = 0; j < int(temp_data.size()); ++j ){
+                vector<double> input;
+                input.push_back(double(temp_data[j]));
+                temp_outputs.push_back(Func(input,params));
+            }
+            //glow_curves.push_back(temp_outputs);
+        }else{
+            updateJ = 0;
+            lambda *= 10;
+        }
+    }
+}
+
+
+
+
+void First_Order_Kinetics::glow_curve(){
+    curve = count_data;
+    int c = 0;
+    double curve_sum = std::accumulate(curve.begin(), curve.end(), 0);
+    double curve_sum_start=curve_sum;
+    vector<double> sum(curve.size(), 0.0);
+    vector<vector<double>> updated_params;
+    vector<vector<double>> temp_curves;
+    bool first = true;
+    vector<double> inputs(int(temp_data.size()), 1.0);
+    for(int i=0; i < int(temp_data.size()); i++) {
+        inputs[i] = double(temp_data[i]);
+    }
+    while (curve_sum > curve_sum_start*.05){
+        if(first){
+            updated_params.push_back(initial_guess(curve));
+        }
+        
+        vector<double> params = {updated_params[c][0],updated_params[c][1],double(updated_params[c][2]),double(updated_params[c][3])};
+        cout<<"----------------Curve: "<<c+1<<"----------------"<<endl;
+        LevenbergMarquardt(inputs,curve, params);
+        updated_params[c] = params;
+        temp_curves.push_back(vector<double>(temp_data.size(),0));
+        for(int i = 0; i < int(temp_data.size()); ++i ){
+            vector<double> input(1,0.0);
+            input[0]= double(temp_data[i]);
+            temp_curves[c][i] = Func(input,params);
+        }
+        transform(temp_curves[c].begin(),temp_curves[c].end(),sum.begin(),sum.begin(),plus<double>());
+        transform(curve.begin(),curve.end(),temp_curves[c].begin(),curve.begin(),minus<double>());
+        int TM_index =  (updated_params[c][3] + updated_params[c][2])/2;
+        for(int i = 0; i < int(temp_data.size());++i){
+            if(curve[i]<0.0) curve[i] = 0.0;
+            if(i > TM_index && c == 0) curve[i] = 0.0;
+            if(i > TM_index && i < params[3]) curve[i] = 0.0;
+        }
+        ++c;
+        curve_sum = accumulate(curve.begin(), curve.end(), 0);
+    }
+    glow_curves = temp_curves;
+    double FOM = 0;
+    double integral = accumulate(sum.begin(), sum.end(), 0);
+    for(int i = 0; i < int(curve.size()); ++i){
+        FOM += abs(count_data[i] - sum[i])/integral;
+    }
+    cout<<FOM<<endl;
+    glow_curves.push_back(sum);
+};
+
+
+vector<double> First_Order_Kinetics::initial_guess(vector<double> &curve){
+    vector<double>::iterator TR = curve.end(),TL = curve.begin(),TM = curve.end();
+    int TM_index = 0, TR_index = 0, TL_index = 0;
+    //Find the range of the curve
+    TL = curve.begin();
+    TR = curve.end();
+    TM = max_element(TL, TR);
+    double half_intensity = *TM/2.0;
+    TL = lower_bound(TL,TM,half_intensity,less<double>());
+    TR = lower_bound(TM,TR,half_intensity,greater<double>());
+    int diff1 = int(TM - TL);
+    int diff2 = int(TR - TM);
+    if(TR == curve.end()) diff2 += diff1;
+    if(diff1 <= diff2){
+        TM_index = int(TM - curve.begin());
+        TL_index = int(TL - curve.begin());
+        TR_index = int(TM_index + (TM_index - TL_index));
+    }else{
+        TM_index = int(TM - curve.begin());
+        TR_index = int(TR - curve.begin());
+        TL_index = int(TM_index - (TR_index - TM_index));
+    }
+    if(TR_index > int(curve.size())){
+        TR_index = int(curve.size())-1;
+    }
+    //Caluclate Initial Guess for both variable
+    double Tm = double(temp_data[TM_index]);
+    double E = activation_energy(TL_index,TM_index,TR_index);
+    // Guess the parameters, it should be close to the true value, else it can fail
+    vector<double> params = {E,Tm,double(TL_index),double(TR_index)};
+    return params;
+}

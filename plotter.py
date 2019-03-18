@@ -18,7 +18,6 @@ def main(filename = sys.argv[1]):
                     data[header].append(value)
                 except KeyError:
                     data[header] = [value]
-
     for d in data:
         if d != 'temp':
             plt.plot(data['temp'],data[d])
