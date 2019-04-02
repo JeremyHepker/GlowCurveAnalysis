@@ -123,17 +123,21 @@ int main(int argc, char * argv[]) {
         
     }else{
         for(int i = 0; i < 1; ++i){
+            cout<<"Reading in File  .";
+            cout.flush();
             File_Manager manager = *new File_Manager(args[1]);
-            pair<vector<int>, vector<double>> data = manager.read();
-            boxFIR box(10);
-            //box.filter(data.second);
-            //vector<double> smoothed = data.second;
+            cout<<".";
+            cout.flush();
+            pair<vector<double>, vector<double>> data = manager.read();
+            cout<<"."<<endl;
+            cout.flush();
+            cout<<"Deconvoluting Glow Peak  .";
+            cout.flush();
             First_Order_Kinetics FOK_Model = *new First_Order_Kinetics(data);
             FOK_Model.glow_curve();
             vector<vector<double>> peaks = FOK_Model.return_glow_curve();
-            //vector<vector<double>> peaks;
-            //peaks.push_back(smoothed);
             manager.write(peaks, args[2]);
+            cout<<endl;
         }
     }
     return 0;

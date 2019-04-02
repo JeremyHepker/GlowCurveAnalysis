@@ -14,7 +14,7 @@ using namespace std;
 File_Manager::File_Manager(std::string given_filename):filename(given_filename){};
 
 //This function reads in the .csv file and parses the data into vector of coordinate pairs.
-pair<vector<int>,vector<double>> File_Manager::read(){
+pair<vector<double>,vector<double>> File_Manager::read(){
     //Open and test the user input file.
     ifstream file(filename);
     if(!file.is_open()){
@@ -63,7 +63,7 @@ void File_Manager::write(vector<vector<double>> glow_curves, string output_name)
     file.setf(ios_base::fixed);
     file<<setprecision(5);
     for(int i = 0; i<raw_temp_data.size();++i){
-        file << raw_temp_data[i]<<","<<raw_count_data[i];
+        file << raw_temp_data[i]<<",";
         for(int j = 0; j<glow_curves.size();++j){
             file<<","<<double(glow_curves[j][i]);
         }

@@ -22,7 +22,10 @@ def main(filename = sys.argv[1]):
         if d != 'temp':
             plt.plot(data['temp'],data[d])
     plt.title(filename)
-    plt.show()
+    plt.show(block=False)
+    input("Hit Enter To Close")
+    plt.close()
+
 
 if __name__ == "__main__":
     # pylint: disable=no-value-for-parameter
