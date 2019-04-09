@@ -9,13 +9,15 @@
 #ifndef File_Manager_hpp
 #define File_Manager_hpp
 
-#include <stdio.h>
 #include <string>
 #include <cmath>
 #include <vector>
 #include <fstream>
 #include <algorithm>
+#include <stdio.h> 
 #include <iostream>
+#include <cstdlib>
+
 class File_Manager{
 private:
     std::vector<double> raw_temp_data;
@@ -36,9 +38,6 @@ public:
 
     double temp_rate();
     
-    std::vector<double> gaussSmoothen(std::vector<double> values, double sigma, int samples);
-    std::vector<double> gaussKernel(int samples, double sigma);
-    double gauss(double sigma, double x);
     ~File_Manager();
     
 };

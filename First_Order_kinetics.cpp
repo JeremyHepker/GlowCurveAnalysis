@@ -80,15 +80,16 @@ void First_Order_Kinetics::glow_curve(){
     }
     curve = count_data;
     glow_curves.push_back(curve);
-    FOM = 0.0;
-    integral = accumulate(sum.begin(), sum.end(), 0);
-    for(int i = 0; i < int(curve.size()); ++i){
-        FOM += abs(curve[i] - sum[i])/integral;
-    }
+//    FOM = 0.0;
+//    integral = accumulate(sum.begin(), sum.end(), 0);
+//    for(int i = 0; i < int(curve.size()); ++i){
+//        FOM += abs(curve[i] - sum[i])/integral;
+//    }
+//    cout<<(FOM*100)<<"%";
     cout<<".";
     cout.flush();
-    //cout<<" FOM: "<<FOM*100<<"%"<<endl;
     LevenbergMarquardt2(curve, param_list, FOM);
+    cout<<"."<<endl<<"----- Levenberg-Marquardt converged to a FOM of "<<(FOM*100)<<"% -----"<<endl;
     integral = 0.0;
     sum = vector<double>(temp_data.size(),0);
     for(int i = 0; i < int(temp_data.size()); ++i ){
@@ -128,12 +129,11 @@ vector<double> First_Order_Kinetics::initial_guess(vector<double> &curve, bool m
     int diff1 = int(TM - TL);
     int diff2 = int(TR - TM);
     if(TR == curve.end()) diff2 += diff1;
+    TM_index = int(TM - curve.begin());
     if(diff1 <= diff2){
-        TM_index = int(TM - curve.begin());
         TL_index = int(TL - curve.begin());
         TR_index = int(TM_index + (TM_index - TL_index));
     }else{
-        TM_index = int(TM - curve.begin());
         TR_index = int(TR - curve.begin());
         TL_index = int(TM_index - (TR_index - TM_index));
     }
@@ -258,15 +258,10 @@ void First_Order_Kinetics::LevenbergMarquardt2(const vector<double> &outputs, ve
     double main_FOM =FOM;
     while(FOM > .03){
         main_FOM =FOM;
-        if(main_hold > 4){
-            cout<<"."<<endl<<"----- Levenberg-Marquardt converged to a FOM of "<<(FOM*100)<<"% -----"<<endl;
+        if(main_hold > 3){
             break;
         }
-        //cout<<"Optimize Paramaters - Iteration : "<<d<<" ";
         for(int param_num = 0; param_num < 3; ++param_num){
-            change_deriv_step(1e-1);
-            double step = param_num == 0 ? DERIV_STEP/d:1*d;
-            change_deriv_step(step);
             vector<double> temp_params;
             vector<double> temp_output(curve.size(), 0.0);
             for(int i = 0; i < params.size();++i){
@@ -287,7 +282,7 @@ void First_Order_Kinetics::LevenbergMarquardt2(const vector<double> &outputs, ve
             vector<vector<double>> Jf_T(num_params, vector<double>(input_size,0.0));
             vector<double> error(input_size,0.0);
             vector<vector<double>> H;
-            double lambda = 0.00001;
+            double lambda = 0.001;
             double updateJ = 1;
             double e = 0.0;
             int i = 0;
@@ -362,7 +357,6 @@ void First_Order_Kinetics::LevenbergMarquardt2(const vector<double> &outputs, ve
                 double temp_e = dotProduct(temp_error, temp_error);
                 if(temp_FOM < FOM){
                     lambda /= 10;
-                    glow_curves.push_back(temp_output);
                     temp_params = t_params;
                     e = temp_e;
                     updateJ = 1;

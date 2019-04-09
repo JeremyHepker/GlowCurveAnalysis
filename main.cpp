@@ -12,7 +12,6 @@
 #include <locale>
 #include "Usage.h"
 #include "File_Manager.hpp"
-#include "Lowess.h"
 #include "First_Order_kinetics.hpp"
 using namespace std;
 vector<string> getArguments(int argc,char * argv[]) {

@@ -26,8 +26,8 @@ private:
     std::vector<double> count_data;
     std::vector<double> curve;
     std::vector<std::vector<double>> glow_curves;
-    double DERIV_STEP = 1e-2;
-    const int MAX_ITER = 1000;
+    //double DERIV_STEP = 1e-2;
+    const int MAX_ITER = 500;
     double k = .000086173303;
 public:
     First_Order_Kinetics(std::pair<std::vector<double>,std::vector<double>>);
@@ -56,9 +56,6 @@ public:
     std::vector<std::vector<double>> jacobian(const std::vector<std::vector<double>> &inputs, std::vector<double> params);
     std::vector<std::vector<double>> return_glow_curve(){
         return glow_curves;
-    }
-    void change_deriv_step(double step){
-        DERIV_STEP = step;
     }
 };
 

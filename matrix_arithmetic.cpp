@@ -13,6 +13,7 @@ using namespace std;
 double First_Order_Kinetics::Deriv(const double input, const vector<double> params, int n)
 {
     // Assumes input is a single row matrix
+    double DERIV_STEP = n == 0 ? 1e-2 : 0.01;
     
     // Returns the derivative of the nth parameter
     vector<double> params1 = params;
@@ -30,7 +31,7 @@ double First_Order_Kinetics::Deriv(const double input, const vector<double> para
 double First_Order_Kinetics::Deriv2(const double input, const vector<double> params, int n)
 {
     // Assumes input is a single row matrix
-    
+    double DERIV_STEP = (params[n] < 5) ? 1e-3:0.01;
     // Returns the derivative of the nth parameter
     vector<double> params1 = params;
     vector<double> params2 = params;
@@ -41,7 +42,6 @@ double First_Order_Kinetics::Deriv2(const double input, const vector<double> par
     double p1 = Func2(input, params1);
     double p2 = Func2(input, params2);
     d = (p2 - p1) / (2*DERIV_STEP);
-    
     return d;
 }
 
@@ -195,7 +195,6 @@ double First_Order_Kinetics::determinant(vector<vector<double>> &A, int size){
             s=-1.0 * s;
         }
     }
-    
     return (det);
 }
 //Functin to preform the dot product between two vectors
@@ -219,30 +218,3 @@ vector<vector<double>> First_Order_Kinetics::Identity(int num, double lambda){
     }
     return I;
 }
-//Function for finding the Jacobian
-vector<vector<double>> First_Order_Kinetics::jacobian(vector<vector<double>> const &inputs, vector<double> params){
-    double T=0.0, E = params[0],Tm = params[1] + 273.15;
-    vector<double> dT, dE;
-    auto t_Im = upper_bound(temp_data.begin(),temp_data.end(),Tm- 273.15,less<double>());
-    double Im = double(curve[t_Im - temp_data.begin()]);
-    
-    for(int i = 0;i < inputs.size();++i){
-        T = double(inputs[i][0])+273.15;
-        double d_dT = exp(1.0-(2.0*k*Tm)/E+(E*(-Tm+T))/(k*Tm*T)-(exp((E*(-Tm+T))/(k*Tm*T))*(T*T)*(1.0-(2.0*k*T)/E))/(Tm*Tm))* ((2.0*k*Tm)/(E*E)-(2.0*exp((E*(-Tm+T))/(k*Tm*T))*k*(T*T*T))/((E*E)*(Tm*Tm))+(-Tm+T)/(k*Tm*T)-(exp((E*(-Tm+T))/(k*Tm*T))*T*(-Tm+T)*(1.0-(2.0*k*T)/E))/(k*(Tm*Tm*Tm)))*Im;
-        
-        if (d_dT  == +1.0/0.0 || d_dT  == -1.0/0.0){
-            d_dT = 0.0;
-        }
-        double d_dE = E*(-(2*k*(T*T*T)*exp((E*(T - Tm))/(k*Tm*T)))/((E*E)*(Tm*Tm)) + (2*k*Tm)/(E*E) - (T*(T - Tm)*(1 - (2*k*T)/E)*exp((E*(T - Tm))/(k*Tm*T)))/(k*(Tm*Tm*Tm)) + (T - Tm)/(k*Tm*T))*exp(-((T*T)*(1 - (2*k*T)/E)*exp((E*(T - Tm))/(k*Tm*T)))/(Tm*Tm) + (E*(T - Tm))/(k*Tm*T) - (2*k*Tm)/E + 1);
-        if (d_dE  == +1.0/0.0 || d_dE  == -1.0/0.0){
-            d_dE = 0.0;
-        }
-        dE.push_back(d_dE);
-        dT.push_back(d_dT);
-    };
-    vector<vector<double>> jacob;
-    jacob.push_back(dE);
-    jacob.push_back(dT);
-    return jacob;
-}
-
