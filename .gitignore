@@ -40,3 +40,6 @@ Temporary Items
 bin/
 # or
 */bin/*
+
+#ignore vscode
+.vscode/
