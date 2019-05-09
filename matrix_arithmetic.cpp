@@ -31,7 +31,7 @@ double First_Order_Kinetics::Deriv(const double input, const vector<double> para
 double First_Order_Kinetics::Deriv2(const double input, const vector<double> params, int n)
 {
     // Assumes input is a single row matrix
-    double DERIV_STEP = (params[n] < 5) ? 1e-3:0.01;
+    double DERIV_STEP = (params[n] < 5) ? 1e-2:0.01;
     // Returns the derivative of the nth parameter
     vector<double> params1 = params;
     vector<double> params2 = params;

@@ -22,6 +22,7 @@ def main(filename = sys.argv[1]):
         if d != 'temp':
             plt.plot(data['temp'],data[d])
     plt.title(filename)
+    plt.subplots_adjust(left=0.0, right=1.0, bottom=0.0, top=1.0)
     plt.show(block=False)
     input("Hit Enter To Close")
     plt.close()

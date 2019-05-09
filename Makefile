@@ -1,7 +1,7 @@
 # Run a regression test
 test: main.exe
 	@./GCA -f Tests/test1.csv -m smart -o output_1
-	#@./GCA -f Tests/test2.csv -m smart -o output_2
+	# #@./GCA -f Tests/test2.csv -m smart -o output_2
 	@./GCA -f Tests/test3.csv -m smart -o output_3
 	@./GCA -f Tests/test4.csv -m smart -o output_4
 	@./GCA -f Tests/test5.csv -m smart -o output_5
@@ -13,9 +13,8 @@ test: main.exe
 	@./GCA -f Tests/test11.csv -m smart -o output_11
 	@./GCA -f Tests/test12.csv -m smart -o output_12
 	@./GCA -f Tests/test13.csv -m smart -o output_13
-	@./GCA -f Tests/test14.csv -m smart -o output_14
-	@./GCA -f Tests/test15.csv -m smart -o output_15
-	@./GCA -f Tests/test16.csv -m smart -o output_16
+	# @./GCA -f Tests/test15.csv -m smart -o output_14
+	# @./GCA -f Tests/test16.csv -m smart -o output_15
 # Compile the main executable
 main.exe: main.cpp First_Order_Kinetics.cpp File_Manager.cpp CSV_iterator.cpp
 	@g++ -std=c++0x -o GCA main.cpp First_Order_Kinetics.cpp File_Manager.cpp matrix_arithmetic.cpp CSV_iterator.cpp

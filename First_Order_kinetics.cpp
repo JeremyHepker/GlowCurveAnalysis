@@ -46,7 +46,6 @@ void First_Order_Kinetics::glow_curve(){
     double integral = 0.0;
     cout<<".";
     cout.flush();
-    //cout<<"Estimating Paramaters "<<" .";
     while(curve_sum > curve_sum_start *.05){
         bool main = peak ==9? true:false;
         param_list.push_back(initial_guess(curve,main));
@@ -80,12 +79,6 @@ void First_Order_Kinetics::glow_curve(){
     }
     curve = count_data;
     glow_curves.push_back(curve);
-//    FOM = 0.0;
-//    integral = accumulate(sum.begin(), sum.end(), 0);
-//    for(int i = 0; i < int(curve.size()); ++i){
-//        FOM += abs(curve[i] - sum[i])/integral;
-//    }
-//    cout<<(FOM*100)<<"%";
     cout<<".";
     cout.flush();
     LevenbergMarquardt2(curve, param_list, FOM);
@@ -184,7 +177,7 @@ void First_Order_Kinetics::LevenbergMarquardt(const vector<double> &outputs, vec
     vector<double> error(input_size,0.0);
     vector<vector<double>> input(1, vector<double>(1,1));
     vector<vector<double>> H;
-    double lambda = 0.01;
+    double lambda = 0.0001;
     double updateJ = 1;
     double e = 0.0;
     double E_est = params[0];
@@ -261,7 +254,7 @@ void First_Order_Kinetics::LevenbergMarquardt2(const vector<double> &outputs, ve
         if(main_hold > 3){
             break;
         }
-        for(int param_num = 0; param_num < 3; ++param_num){
+        for(int param_num = 0; param_num < 3 ; ++param_num){
             vector<double> temp_params;
             vector<double> temp_output(curve.size(), 0.0);
             for(int i = 0; i < params.size();++i){
@@ -282,7 +275,7 @@ void First_Order_Kinetics::LevenbergMarquardt2(const vector<double> &outputs, ve
             vector<vector<double>> Jf_T(num_params, vector<double>(input_size,0.0));
             vector<double> error(input_size,0.0);
             vector<vector<double>> H;
-            double lambda = 0.001;
+            double lambda = 0.1;
             double updateJ = 1;
             double e = 0.0;
             int i = 0;
@@ -337,6 +330,7 @@ void First_Order_Kinetics::LevenbergMarquardt2(const vector<double> &outputs, ve
                 //Evaluate the total distance error at the updated paramaters.
                 vector<double> temp_error(input_size,0.0);
                 vector<double> t_param(3,0.0);
+                vector<pair<double,int>> peak_maxs(num_params, make_pair(0.0,0));
                 for(int j=0; j < input_size; j++){
                     double output = 0.0;
                     for(int k = 0; k < num_params;++k){
@@ -344,11 +338,27 @@ void First_Order_Kinetics::LevenbergMarquardt2(const vector<double> &outputs, ve
                         t_param[other_param1] = params[k][other_param1];
                         t_param[other_param2] = params[k][other_param2];
                         double peak = Func2(temp_data[j],t_param);
+                        if(param_num == 2 && peak_maxs[k].first < peak){
+                            peak_maxs[k].first = peak;
+                            peak_maxs[k].second = j;
+                        }
                         output += peak;
                     }
                     temp_output[j] = output;
                     integral += output;
                     temp_error[j] = outputs[j] - output;
+                }
+                if(param_num == 2 || param_num == 1){
+                    for(int j = 0; j < num_params; ++j){
+                        bool more = false;
+                        double max = temp_output[peak_maxs[j].second] -= 1.0;
+                        while(max >= curve[peak_maxs[j].second]){
+                            temp_params[j] -= 1.0;
+                            max -= 1.0;
+                            more = true;
+                        }
+                        if(more) continue;
+                    }
                 }
                 double temp_FOM = 0.0;
                 for(int z = 0; z < int(curve.size()); ++z){
@@ -365,7 +375,7 @@ void First_Order_Kinetics::LevenbergMarquardt2(const vector<double> &outputs, ve
                     inner_hold += 1;
                     updateJ = 0;
                     lambda *= 10;
-                }
+                } 
                 if(inner_hold > 25) i = 500;
                 ++i;
             }
@@ -373,7 +383,7 @@ void First_Order_Kinetics::LevenbergMarquardt2(const vector<double> &outputs, ve
                 params[i][param_num]= temp_params[i];
             }
         }
-        if(abs(main_FOM - FOM) < (1e-5)){
+        if(abs(main_FOM - FOM) < (1e-3)){
             main_hold += 1;
         }else{
             main_hold = 0;
