@@ -10,20 +10,25 @@
 #define File_Manager_hpp
 
 #include <string>
+#include <getopt.h>
 #include <cmath>
 #include <vector>
 #include <fstream>
 #include <algorithm>
-#include <stdio.h> 
+#include <stdio.h>
 #include <iostream>
+#include <locale>
 #include <cstdlib>
+#include <iomanip>
 
 class File_Manager{
 private:
     std::vector<double> raw_temp_data;
     std::vector<double> raw_count_data;
-    int total_counts = 0;
-    double time = 0.1;
+    std::vector<double> heating_rate;
+    int total_counts = 0, barcodeNum;
+    double maxTime = 0.0, maxTemp = 0.0;
+    bool time = false;
     std::string filename,header;
 public:
     
@@ -34,10 +39,11 @@ public:
     std::pair<std::vector<double>,std::vector<double>> read();
     
     //This is a function to write the output to a new CSV file.
-    void write(std::vector<std::vector<double>> glow_curves, std::string output_name);
-
-    double temp_rate();
-    
+    void write(std::vector<std::vector<double>> glow_curves, std::string output_name, int count);
+    double temp_rate(std::string name);
+    double barcode(){
+        return barcodeNum;
+    };
     ~File_Manager();
     
 };

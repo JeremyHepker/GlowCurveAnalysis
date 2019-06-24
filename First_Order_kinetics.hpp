@@ -27,14 +27,14 @@ private:
     std::vector<double> curve;
     std::vector<std::vector<double>> glow_curves;
     //double DERIV_STEP = 1e-2;
-    const int MAX_ITER = 500;
+    const int MAX_ITER = 1000;
     double k = .000086173303;
 public:
     First_Order_Kinetics(std::pair<std::vector<double>,std::vector<double>>);
     double activation_energy(int TL_index,int TM_index,int TR_index);
     double frequency_factor();
-    void glow_curve();
-    std::vector<double> initial_guess(std::vector<double> &curve, bool main);
+    double glow_curve();
+    std::vector<double> initial_guess(std::vector<double> &curve, bool main,int i);
     double Func(const double input, const std::vector<double> params);
     double Func2(const double input, const std::vector<double> params);
 

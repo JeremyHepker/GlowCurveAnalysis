@@ -33,7 +33,7 @@ double First_Order_Kinetics::activation_energy(int TL_index,int TM_index,int TR_
 };
 
 /*---------------------------------Main Deconvolution---------------------------------------*/
-void First_Order_Kinetics::glow_curve(){
+double First_Order_Kinetics::glow_curve(){
     int peak = 0;
     double FOM = 1.0;
     curve = count_data;
@@ -46,11 +46,11 @@ void First_Order_Kinetics::glow_curve(){
     double integral = 0.0;
     cout<<".";
     cout.flush();
-    while(curve_sum > curve_sum_start *.05){
+    while(curve_sum > curve_sum_start *.03 && int(param_list.size())<4){
         bool main = peak ==9? true:false;
-        param_list.push_back(initial_guess(curve,main));
+        param_list.push_back(initial_guess(curve,main,peak));
         vector<double> params = {param_list[peak][0],param_list[peak][1],double(param_list[peak][2]),double(param_list[peak][3])};
-        LevenbergMarquardt(curve, params);
+        //LevenbergMarquardt(curve, params);
         auto t_Im = upper_bound(temp_data.begin(),temp_data.end(),params[1],less<int>());
         double Im = double(curve[int(t_Im - temp_data.begin())]);
         param_list[peak] = params;
@@ -64,6 +64,7 @@ void First_Order_Kinetics::glow_curve(){
         auto end = __tempPeaks__[peak].end();
         transform(begin,end,sum.begin(),sum.begin(),plus<double>());
         transform(curve.begin(),curve.end(),sum.begin(),curve.begin(),minus<double>());
+        glow_curves.push_back(curve);
         int TM_index = (param_list[peak][4] + param_list[peak][3])/2;
         for(int i = 0; i < int(temp_data.size());++i){
             if(curve[i]<0.0) curve[i] = 0.0;
@@ -78,36 +79,41 @@ void First_Order_Kinetics::glow_curve(){
         if(__tempPeaks__[0][i] < count_data[i]) count_data[i] = __tempPeaks__[0][i];
     }
     curve = count_data;
-    glow_curves.push_back(curve);
     cout<<".";
     cout.flush();
     LevenbergMarquardt2(curve, param_list, FOM);
+    if(FOM > .20){
+        cout<<"."<<endl<<"----- Levenberg-Marquardt failed to converged -----"<<endl;
+        cout<<"data most likely contains to much noise, or is improperly formatted"<<endl;
+        return -1;
+    }
     cout<<"."<<endl<<"----- Levenberg-Marquardt converged to a FOM of "<<(FOM*100)<<"% -----"<<endl;
     integral = 0.0;
-    sum = vector<double>(temp_data.size(),0);
+    sum = vector<double>(temp_data.size(),0.0);
+    vector<double> peak_areas = vector<double>(4, 0.0);
+    for(int i = 0;i < int(param_list.size()); ++i){
+        glow_curves.push_back(vector<double>(temp_data.size(),0.0));
+    }
     for(int i = 0; i < int(temp_data.size()); ++i ){
         double output = 0.0;
         for(int x = 0; x < int(param_list.size()); ++x){
             double out = Func2(temp_data[i],param_list[x]);
+            peak_areas[x] += out;
             output += out;
-            __tempPeaks__[x][i] = out;
+            glow_curves[x][i] = out;
         }
         sum[i] = output;
         integral += output;
     }
     glow_curves.push_back(sum);
-    FOM = 0.0;
-    //integral = accumulate(sum.begin(), sum.end(), 0);
-    for(int i = 0; i < int(curve.size()); ++i){
-        FOM += abs(curve[i] - sum[i])/integral;
+    glow_curves.push_back(count_data);
+    for(int i = 0; i < int(param_list.size()); ++i){
+        cout<<"----- Area Under Curve #"<<i+1<<" :"<<peak_areas[i]<<" -----"<<endl;
     }
-    for(auto i = __tempPeaks__.begin(); i != __tempPeaks__.end(); ++i){
-        glow_curves.push_back(*i);
-    }
+    return FOM;
 };
 
-
-vector<double> First_Order_Kinetics::initial_guess(vector<double> &curve, bool main){
+vector<double> First_Order_Kinetics::initial_guess(vector<double> &curve, bool main, int j){
     vector<double>::iterator TR = curve.end(),TL = curve.begin(),TM = curve.end();
     int TM_index = 0, TR_index = 0, TL_index = 0;
     double half_intensity = 0;
@@ -115,7 +121,7 @@ vector<double> First_Order_Kinetics::initial_guess(vector<double> &curve, bool m
     TL = curve.begin();
     TR = curve.end();
     TM = max_element(TL, TR);
-    if(main) half_intensity = *TM/4.0;
+    if(main) half_intensity = *TM/1.2;
     else half_intensity = *TM/2.0;
     TL = lower_bound(TL,TM,half_intensity,less<double>());
     TR = lower_bound(TM,TR,half_intensity,greater<double>());
@@ -136,10 +142,8 @@ vector<double> First_Order_Kinetics::initial_guess(vector<double> &curve, bool m
     if(TL_index < 0){
         TL_index = 0;
     }
-    //Caluclate Initial Guess for both variable
     double Tm = double(temp_data[TM_index]);
     double E = activation_energy(TL_index,TM_index,TR_index);
-    // Guess the parameters, it should be close to the true value, else it can fail
     vector<double> params = {E,Tm,double(TL_index),double(TR_index)};
     return params;
 }
@@ -221,7 +225,7 @@ void First_Order_Kinetics::LevenbergMarquardt(const vector<double> &outputs, vec
         
         //Evaluate the total distance error at the updated paramaters.
         vector<double> temp_params;
-        vector<double> temp_error(input_size,0.0);
+        vector<double> temp_error(input_size,0.0),temp_temp(input_size,0.0);
         temp_params.push_back(E_est);
         temp_params.push_back(Tm_est);
         bool bad = false;
@@ -249,7 +253,7 @@ void First_Order_Kinetics::LevenbergMarquardt2(const vector<double> &outputs, ve
     int d = 1;
     int main_hold = 0;
     double main_FOM =FOM;
-    while(FOM > .03){
+    while(FOM > .02){
         main_FOM =FOM;
         if(main_hold > 3){
             break;
@@ -330,7 +334,6 @@ void First_Order_Kinetics::LevenbergMarquardt2(const vector<double> &outputs, ve
                 //Evaluate the total distance error at the updated paramaters.
                 vector<double> temp_error(input_size,0.0);
                 vector<double> t_param(3,0.0);
-                vector<pair<double,int>> peak_maxs(num_params, make_pair(0.0,0));
                 for(int j=0; j < input_size; j++){
                     double output = 0.0;
                     for(int k = 0; k < num_params;++k){
@@ -338,27 +341,11 @@ void First_Order_Kinetics::LevenbergMarquardt2(const vector<double> &outputs, ve
                         t_param[other_param1] = params[k][other_param1];
                         t_param[other_param2] = params[k][other_param2];
                         double peak = Func2(temp_data[j],t_param);
-                        if(param_num == 2 && peak_maxs[k].first < peak){
-                            peak_maxs[k].first = peak;
-                            peak_maxs[k].second = j;
-                        }
                         output += peak;
                     }
                     temp_output[j] = output;
                     integral += output;
                     temp_error[j] = outputs[j] - output;
-                }
-                if(param_num == 2 || param_num == 1){
-                    for(int j = 0; j < num_params; ++j){
-                        bool more = false;
-                        double max = temp_output[peak_maxs[j].second] -= 1.0;
-                        while(max >= curve[peak_maxs[j].second]){
-                            temp_params[j] -= 1.0;
-                            max -= 1.0;
-                            more = true;
-                        }
-                        if(more) continue;
-                    }
                 }
                 double temp_FOM = 0.0;
                 for(int z = 0; z < int(curve.size()); ++z){
@@ -375,7 +362,7 @@ void First_Order_Kinetics::LevenbergMarquardt2(const vector<double> &outputs, ve
                     inner_hold += 1;
                     updateJ = 0;
                     lambda *= 10;
-                } 
+                }
                 if(inner_hold > 25) i = 500;
                 ++i;
             }
@@ -393,4 +380,3 @@ void First_Order_Kinetics::LevenbergMarquardt2(const vector<double> &outputs, ve
         cout.flush();
     }
 }
-
