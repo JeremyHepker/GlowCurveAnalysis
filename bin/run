@@ -1,0 +1,14 @@
+#!/bin/bash
+#
+# run GCA
+#
+# Jeremy Hepker <jhepker@umich.edu>
+
+
+# Stop on errors, print commands
+set -e
+
+make test
+python3 plotter.py "output_files_/"
+
+
