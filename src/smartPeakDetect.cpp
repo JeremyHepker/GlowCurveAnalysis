@@ -29,6 +29,33 @@ void smartPoints(std::vector<double>& x, std::vector<double>& y, std::vector<int
             inflectPnt.push_back(i);
         }
     }
+    for(int i = 1; i < int(maxima.size())- 1; ++i){
+        if(y[maxima[i]] < y[maxima[i+1]] && y[maxima[i]] < y[maxima[i-1]]){
+            maxima.erase(maxima.begin()+i);
+            --i;
+            continue;
+        }
+        if(abs(x[maxima[i]] - x[maxima[i-1]]) <= 10){
+            if(abs(x[maxima[i]] - x[maxima[i+1]]) <= 10){
+                maxima.erase(maxima.begin()+i+1);
+                maxima.erase(maxima.begin()+i-1);
+                --i;
+                continue;
+            }
+            else{
+                maxima.erase(maxima.begin()+i);
+                --i;
+                continue;
+            }
+        }
+    }
+    for(int i = 0; i < int(maxima.size()); ++i){
+        if((y[maxima[i]] < y[maxima[i] - 5]) || y[maxima[i]] < 10){
+            maxima.erase(maxima.begin()+i);
+            --i;
+            continue;
+        }
+    }
 }
 
 
@@ -111,7 +138,9 @@ double activation(std::vector<double>& x, double TL, double TR, double TM){
     C = 1.51+(3*(m_g -0.42));
 
     E = ((C*K*(TM*TM))/t) - (b*(2*K*TM));
-    if(E > 3.0) E  = 3.0;
+    if(E > 3.0) {
+        E  = 3;
+    }
     return E;
 }
 
@@ -121,7 +150,7 @@ void findPeaks(std::vector<double>& x, std::vector<double>& y, std::vector<std::
     std::vector<int> maximums, minimum, inflections;
     std::vector<double> firstDir(x.size(), 0.0);
     std::vector<double> secDir(x.size(), 0.0);
-    std::string output_dir = "/Users/jeremyhepker/Documents/NERS499/GlowCurveAnalsys/GlowCurveAnalsys/PeakDetection/";
+    std::string output_dir = "/Users/jeremyhepker/Documents/NERS499/GlowCurveAnalsys/GlowCurveAnalsys/testSpectra/";
     firstDeriv(xNew, yNew, firstDir);
     secDeriv(xNew, yNew, secDir);
     smartPoints(xNew, yNew, minimum, maximums,firstDir, secDir, inflections);
@@ -138,8 +167,8 @@ void findPeaks(std::vector<double>& x, std::vector<double>& y, std::vector<std::
         std::vector<double> peak(x.size(), 0.0);
         FOKModel(xNew, peak, i->at(1), i->at(2), i->at(0));
         peaks.push_back(peak);
-    }
-    write(peaks,yNew,xNew, "/Users/jeremyhepker/Documents/NERS499/GlowCurveAnalsys/GlowCurveAnalsys/PeakDetection/peakTest");
+    } 
+    write(peaks,yNew,xNew, "/Users/jeremyhepker/Documents/NERS499/GlowCurveAnalsys/GlowCurveAnalsys/testSpectra/");
 }
 
 void firstDeriv(std::vector<double>& x, std::vector<double>& y, std::vector<double>& derivative){
@@ -270,7 +299,7 @@ void write(std::vector<std::vector<double>> glow_curves,std::vector<double> y,st
 
 void nonMaxPeaks(std::vector<double>& x, std::vector<double>& y, std::vector<double> secDerivative, std::vector<int>& maxima, std::vector<int>& minima, std::vector<int>& inflectPnt, std::vector<std::vector<double>>& peakParams){
     std::vector<double> yTemp = y;
-    std::string dir = "/Users/jeremyhepker/Documents/NERS499/GlowCurveAnalsys/GlowCurveAnalsys/PeakDetection/subtraction"
+    std::string dir = "/Users/jeremyhepker/Documents/NERS499/GlowCurveAnalsys/GlowCurveAnalsys/testSpectra/"
     ;
     const double origPeakArea = std::accumulate(yTemp.begin(), yTemp.end(), 0.0);
     std::vector<double> sum(x.size(),0.0);
@@ -283,17 +312,10 @@ void nonMaxPeaks(std::vector<double>& x, std::vector<double>& y, std::vector<dou
     }
     for(int j = 0; j < int(yTemp.size()); ++j) if(yTemp[j] < 0.0 || j > maxima.back()) yTemp[j] = 0.0;
     std::vector<double> smoothed;
-//    dataSmooth(x, yTemp);
-//    peaks.push_back(yTemp);
-    write(peaks, y, x, dir);
+
     double curPeakArea = std::accumulate(yTemp.begin(), yTemp.end(), 0.0);
-    while(curPeakArea > (0.05 * origPeakArea)){
+    while(curPeakArea > (0.2 * origPeakArea)){
         std::vector<int> remainInflects;
-//        for(auto i = inflectPnt.begin(); i != inflectPnt.end(); ++i){
-//            if(yTemp[*i] != 0.0){
-//                remainInflects.push_back(*i);
-//            }
-//        }
         std::vector<double>::iterator TM = y.begin();
         if(remainInflects.empty()){
             int max = 0;

@@ -11,7 +11,7 @@
 using namespace std;
 //---------------------Levenburg Marquardt Method Helper Functions----------------------//
 
-double First_Order_Kinetics::Deriv(const double input, const vector<double> params, int n)
+double First_Order_Kinetics::Deriv2(const double input, const vector<double> params, int n)
 {
     // Assumes input is a single row matrix
     double DERIV_STEP = (params[n] < 5) ? 1e-2:0.01;

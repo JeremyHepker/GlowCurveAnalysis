@@ -13,25 +13,40 @@
 #include "Usage.h"
 #include <fstream>
 #include <iomanip>
+#include <stdio.h>
 #include "src/File_Manager.hpp"
 #include "src/batch_handler.hpp"
 #include "src/smartPeakDetect.hpp"
 #include "src/DataSmoothing.hpp"
 #include "src/Levenberg–Marquardt.hpp"
-//#include "First_Order_kinetics.hpp"
-
+#ifdef WINDOWS
+#include <direct.h>
+#define GetCurrentDir _getcwd
+#else
+#include <unistd.h>
+#define GetCurrentDir getcwd
+#endif
 
 using namespace std;
 
 int main(int argc, char * argv[]) {
-    string dir = argv[1];
-    if(dir.back() == '/') dir.pop_back();
-    vector<string> filenames,files = batch_handler(dir);
-    vector<vector<double>> stats(files.size(), vector<double>(0,0.0)), peakParams;
+    string dir,start ="n";
+    vector<string> filenames,files;
+    while(start =="n" || start =="N"){
+        cout<<"Please enter the full path to directory containing csv formatted emission spectra:"<<endl;
+        cin>>dir;
+        //string dir = argv[1];
+        if(dir.back() == '/') dir.pop_back();
+        filenames,files = batch_handler(dir);
+        cout<<"Is this correct and would you like to start processing (y/n)?"<<endl;
+        cin>>start;
+    }
+    vector<vector<double>> stats(files.size(), vector<double>(0,0.0));
     int count = 0;
     auto i = files.begin();
     string output_dir = *i++;
     for(; i != files.end(); ++i){
+        vector<vector<double>> peakParams;
         double integral= 0;
         if(i->find("temp.csv") !=string::npos){
             files.erase(i);
@@ -45,10 +60,14 @@ int main(int argc, char * argv[]) {
         cout<<".";
         cout.flush();
         pair<vector<double>, vector<double>> data = fileManager.read();
+        const double curveArea = accumulate(data.second.begin(), data.second.end(), 0.0);
+        if(curveArea < 2000){
+            files.erase(i);
+            continue;
+        }
         remove( dir + "/temp.csv" );
         findPeaks(data.first,data.second, peakParams);
         stats[count].push_back(fileManager.barcode());
-        //for(auto i = data.second.begin(); i != data.second.end();i++) integral += *i;
         remove( dir + "/temp.csv" );
         cout<<"."<<endl;
         cout.flush();

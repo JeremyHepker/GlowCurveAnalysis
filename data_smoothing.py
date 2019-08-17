@@ -31,12 +31,15 @@ def main(directory = sys.argv[1]):
         with open(directory+filename) as f:
             for line in f:
                 if count > 8:
+                    print(line)
                     try:
-                        barcode = line.split(',')[0]
-                        header.append(float(line.split(',')[1]))
-                        value.append(float(line.split(',')[2]))
+                        sampleNo = line.split(',')[0]
+                        barcode = line.split(',')[1]
+                        time = line.split(',')[2]
+                        header.append(float(line.split(',')[3]))
+                        value.append(float(line.split(',')[4]))
                     except:
-                        print(filename)
+                        pass
                 count += 1
         newValue.append(value[0])
         for v in value:
@@ -50,7 +53,7 @@ def main(directory = sys.argv[1]):
         with open(directory+"clean_data/"+filename, "w+") as outfile:
             outfile.write("barcode,temp,Count\n")
             for i in range(len(header)):
-                outfile.write(barcode+","+str(header[i])+","+str(y[i])+"\n")
+                outfile.write("barcode"+","+str(header[i])+","+str(y[i])+"\n")
 
 if __name__ == "__main__":
     # pylint: disable=no-value-for-parameter

@@ -24,16 +24,12 @@ vector<string> batch_handler(string dir){
         if (exists(p)){
             int output_dir_num = 0;
             if(exists(output_folder) && is_directory(output_folder)){
-                cout<<"We have tried to create a output directory, output_files, but it already exist. Would you like to overwrite[y/n]?"<<endl;
-                char overwrite = 'n';
-                //cin>>overwrite;
-                if(overwrite == 'n')
-                    while(is_directory(output_folder)){
-                        output_dir_num += 1;
-                        string name = "/output_folder_"+to_string(output_dir_num);
-                        if(!is_regular_file(p))output_folder = p / name;
-                        else output_folder = p.parent_path() / name;
-                    }
+                while(is_directory(output_folder)){
+                    output_dir_num += 1;
+                    string name = "/output_folder_"+to_string(output_dir_num);
+                    if(!is_regular_file(p))output_folder = p / name;
+                    else output_folder = p.parent_path() / name;
+                }
             }
             create_directory(output_folder);
             files.push_back(output_folder.string());
@@ -64,14 +60,14 @@ vector<string> batch_handler(string dir){
                     }else if (is_directory(x->path())){
                         dirs.push_back(make_pair(x->path().string(),0));
                     }else
-                        cout << p << " does not exist\n";
+                        cout << p << " does not exist, try entering full path\n";
                     ++x;
                 }
             }
-            else cout << p << " exists, but is not a regular file or directory\n";
+            else cout << p << " exists, but is not a regular file or directory, try entering full path\n";
         }
         else
-            cout << p << " does not exist\n";
+            cout << p << " does not exist, try entering full path\n";
     }
     catch (const filesystem_error& ex){
         cout << ex.what() << '\n';

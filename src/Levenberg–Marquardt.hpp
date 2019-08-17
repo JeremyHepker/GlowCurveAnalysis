@@ -11,6 +11,7 @@
 
 #include <string>
 #include <vector>
+#include <chrono>
 #include <fstream>
 #include <iterator>
 #include <algorithm>
@@ -32,7 +33,7 @@ public:
     //double activation_energy(int TL_index,int TM_index,int TR_index);
     double glow_curve();
     std::vector<double> initial_guess(std::vector<double> &curve,int i);
-    //double Func(const double input, const std::vector<double> params);
+//    double Func(const double input, const std::vector<double> params);
     double Func2(const double input, const std::vector<double> params);
 
     std::vector<std::vector<double>> jacobian(int max_index,int TL_index,int TR_index,double E,double Tm,double Im);
@@ -42,12 +43,12 @@ public:
     double determinant(std::vector<std::vector<double>> &A, int size);
     void cofactor(std::vector<std::vector<double>> &A, std::vector<std::vector<double>> &temp, int p, int q, int n);
 //    double Deriv(const double input, const std::vector<double> params, int n);
-    double Deriv(const double input, const std::vector<double> params, int n);
+    double Deriv2(const double input, const std::vector<double> params, int n);
 
     double dotProduct(std::vector<double> A, std::vector<double> B);
     std::vector<std::vector<double>> Identity(int num, double lambda);
     std::vector<double> vec_matrix_multi(std::vector<std::vector<double>> const &A,std::vector<double> const &B);
-//    void LevenbergMarquardt(const std::vector<double> &outputs, std::vector<double> &params);
+    void LevenbergMarquardt2(const std::vector<double> &outputs, std::vector<double> &params);
     void LevenbergMarquardt(const std::vector<double> &outputs, std::vector<std::vector<double>> &params, double &FOM);
     void adjoint(std::vector<std::vector<double>> &A,std::vector<std::vector<double>> &adj);
     std::vector<std::vector<double>> jacobian(const std::vector<std::vector<double>> &inputs, std::vector<double> params);

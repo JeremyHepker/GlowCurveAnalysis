@@ -72,7 +72,7 @@ pair<std::vector<double>,std::vector<double>> File_Manager::read(){
         raw_temp_data.push_back(stod(*i));
         ++i;
         raw_count_data.push_back(stod(*i));
-        if(!two && raw_count_data.back() >1)two = true;
+        if(!two && raw_count_data.back() >2)two = true;
         ++i;
         if(file.eof()) break;
         if(!two){
@@ -85,9 +85,8 @@ pair<std::vector<double>,std::vector<double>> File_Manager::read(){
         raw_temp_data.pop_back();
         raw_count_data.pop_back();
     }
-    dataSmooth(raw_temp_data, raw_count_data);
-//    raw_temp_data = tempData;
-//    raw_count_data = countData;
+    for(int i = 0; i < 5; ++i) dataSmooth(raw_temp_data, raw_count_data);
+
     return make_pair(raw_temp_data, raw_count_data);
 }
 
@@ -143,8 +142,10 @@ void File_Manager::statistics(std::vector<std::vector<double>> stats, std::vecto
         std::cerr<<"Could not open output file : statistics.csv"<<std::endl;
         exit(1);
     }
-    myfile<<"Barcode, Figure of Merit, Total Curve Area, Heating Rate (C/s), Peak Area(s)\n";
+    myfile<<"Filename, Barcode, Figure of Merit, Total Curve Area, Heating Rate (C/s), Peak Area(s)\n";
+    int count = 0; 
     for(auto i = stats.begin(); i != stats.end();++i){
+        myfile<<filenames[count++]<<",";
         for(auto j = i->begin(); j != i->end();++j){
             myfile<<*j<<",";
         }
