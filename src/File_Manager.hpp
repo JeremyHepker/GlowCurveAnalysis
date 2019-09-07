@@ -41,7 +41,7 @@ public:
     std::pair<std::vector<double>,std::vector<double>> read();
     void statistics(std::vector<std::vector<double>> stats, std::vector<std::string> filenames, std::string dir);
     //This is a function to write the output to a new CSV file.
-    void write(std::vector<std::vector<double>> glow_curves, std::string output_name, int count);
+    void write(std::vector<std::vector<double>> glow_curves, std::string output_name);
     double temp_rate(std::string name);
     double barcode(){
         return barcodeNum;

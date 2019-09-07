@@ -16,8 +16,8 @@
 #include <locale>
 #include <numeric>
 #include <fstream>
-#include "Fitting_Models/OTORModel.hpp"
-#include "Fitting_Models/FOKModel.hpp"
+#include "OTORModel.hpp"
+#include "FOKModel.hpp"
 #include "DataSmoothing.hpp"
 
 void smartPoints(std::vector<double>& x, std::vector<double>& y, std::vector<int>& minimum,std::vector<int>& maxima,std::vector<double> derivative,std::vector<double> secDerivative,std::vector<int>& inflectPnt);
@@ -27,7 +27,7 @@ void pointsParams(std::vector<double>& x, std::vector<double>& y, std::vector<in
 
 //void dataSmooth(std::vector<double>& x, std::vector<double>& y, std::vector<double>& xNew, std::vector<double>& yNew);
 
-double activation(std::vector<double>& x, double TL, double TR, double TM);
+double activation(double TL, double TR, double TM);
 
 void findPeaks(std::vector<double>& x, std::vector<double>& y, std::vector<std::vector<double>>& peakPrams);//, std::string output_dir);
 
@@ -35,7 +35,7 @@ void findPeaks(std::vector<double>& x, std::vector<double>& y, std::vector<std::
 
 void firstDeriv(std::vector<double>& x, std::vector<double>& y, std::vector<double>& derivative);
 
-void nonMaxPeaks(std::vector<double>& x, std::vector<double>& y, std::vector<double> secDerivative, std::vector<int>& maxima, std::vector<int>& minima, std::vector<int>& inflectPnt, std::vector<std::vector<double>>& peakParams);
+void nonMaxPeaks(std::vector<double>& x, std::vector<double>& y, std::vector<double> secDerivative, std::vector<int>& maxima, std::vector<int>& minima, std::vector<std::vector<double>>& peakParams);
 
 void secDeriv(std::vector<double>& x, std::vector<double>& y, std::vector<double>& derivative);
 

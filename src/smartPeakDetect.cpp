@@ -118,12 +118,12 @@ void pointsParams(std::vector<double>& x, std::vector<double>& y, std::vector<in
         peakParams.back()[5] = TR_index;
     }
     for(int i = 0; i < int(peakParams.size()); ++i){
-        peakParams[i][0] = activation(x, x[peakParams[i][3]],x[peakParams[i][5]], x[peakParams[i][4]]);
+        peakParams[i][0] = activation(x[peakParams[i][3]],x[peakParams[i][5]], x[peakParams[i][4]]);
     }
     
 }
 
-double activation(std::vector<double>& x, double TL, double TR, double TM){
+double activation(double TL, double TR, double TM){
     double m_g = 0.0,E = 0.0,C = 0.0, K = .000086173303,b = 0.0,t = 0.0,d = 0.0,w = 0.0;
     TL += 273.15;
     TM += 273.15;
@@ -150,25 +150,25 @@ void findPeaks(std::vector<double>& x, std::vector<double>& y, std::vector<std::
     std::vector<int> maximums, minimum, inflections;
     std::vector<double> firstDir(x.size(), 0.0);
     std::vector<double> secDir(x.size(), 0.0);
-    std::string output_dir = "/Users/jeremyhepker/Documents/NERS499/GlowCurveAnalsys/GlowCurveAnalsys/testSpectra/";
     firstDeriv(xNew, yNew, firstDir);
     secDeriv(xNew, yNew, secDir);
     smartPoints(xNew, yNew, minimum, maximums,firstDir, secDir, inflections);
     pointsParams(xNew, yNew, maximums, minimum, peakParams);
     for(int i = 0; i < int(peakParams.size()); ++i) peakParams[i][2] = yNew[peakParams[i][4]];
-    nonMaxPeaks(xNew, yNew, secDir,maximums, minimum, inflections, peakParams);
-    minimum.clear();
-    for(int j = 0; j < int(peakParams.size()); ++j){
-        minimum.push_back(peakParams[j][3]);
-        minimum.push_back(peakParams[j][5]);
-    }
-    printFindings(xNew,yNew, minimum,maximums, inflections,output_dir);////print these fucking curves
-    for(auto i = peakParams.begin(); i != peakParams.end(); ++i){
-        std::vector<double> peak(x.size(), 0.0);
-        FOKModel(xNew, peak, i->at(1), i->at(2), i->at(0));
-        peaks.push_back(peak);
-    } 
-    write(peaks,yNew,xNew, "/Users/jeremyhepker/Documents/NERS499/GlowCurveAnalsys/GlowCurveAnalsys/testSpectra/");
+    nonMaxPeaks(xNew, yNew, secDir,maximums, minimum, peakParams);
+    /*THIS IS USED FOR OUTPUTING PEAK DETECTION STATS JUST UNCOMMENT*/
+//    minimum.clear();
+//    for(int j = 0; j < int(peakParams.size()); ++j){
+//        minimum.push_back(peakParams[j][3]);
+//        minimum.push_back(peakParams[j][5]);
+//    }
+//    printFindings(xNew,yNew, minimum,maximums, inflections,<INSERT A OUTPUT LOCATION>);
+//    for(auto i = peakParams.begin(); i != peakParams.end(); ++i){
+//        std::vector<double> peak(x.size(), 0.0);
+//        FOKModel(xNew, peak, i->at(1), i->at(2), i->at(0));
+//        peaks.push_back(peak);
+//    }
+//    write(peaks,yNew,xNew, <INSERT A OUTPUT LOCATION><INSERT A OUTPUT LOCATION><INSERT A OUTPUT LOCATION>);
 }
 
 void firstDeriv(std::vector<double>& x, std::vector<double>& y, std::vector<double>& derivative){
@@ -279,17 +279,17 @@ void write(std::vector<std::vector<double>> glow_curves,std::vector<double> y,st
         exit(1);
     }
     file<<"temp,";
-    for(int j = 0; j<glow_curves.size();++j){
+    for(int j = 0; j<int(glow_curves.size());++j){
         std::string ster = "count_" + std::to_string(j);
         file<<","<<ster;
     }
     file<<",\n";
     file.setf(std::ios_base::fixed);
     //file<<std::setprecision(5);
-    for(int i = 0; i<y.size();++i){
+    for(int i = 0; i<int(y.size());++i){
         file << x[i]<<",";
         //file << y[i];
-        for(int j = 0; j<glow_curves.size();++j){
+        for(int j = 0; j<int(glow_curves.size());++j){
             file<<","<<double(glow_curves[j][i]);
         }
         file<<",\n";
@@ -297,7 +297,7 @@ void write(std::vector<std::vector<double>> glow_curves,std::vector<double> y,st
     file.close();
 }
 
-void nonMaxPeaks(std::vector<double>& x, std::vector<double>& y, std::vector<double> secDerivative, std::vector<int>& maxima, std::vector<int>& minima, std::vector<int>& inflectPnt, std::vector<std::vector<double>>& peakParams){
+void nonMaxPeaks(std::vector<double>& x, std::vector<double>& y, std::vector<double> secDerivative, std::vector<int>& maxima, std::vector<int>& minima, std::vector<std::vector<double>>& peakParams){
     std::vector<double> yTemp = y;
     std::string dir = "/Users/jeremyhepker/Documents/NERS499/GlowCurveAnalsys/GlowCurveAnalsys/testSpectra/"
     ;
@@ -332,7 +332,7 @@ void nonMaxPeaks(std::vector<double>& x, std::vector<double>& y, std::vector<dou
         }else{
             double min = 10;
             int minIndex = 0;
-            for(int i = 0; i < (remainInflects.size()); ++i){
+            for(int i = 0; i < int(remainInflects.size()); ++i){
                 if(abs(secDerivative[remainInflects[i]]) < min){
                     min = abs(secDerivative[remainInflects[i]]);
                     minIndex = remainInflects[i];
@@ -397,7 +397,7 @@ void nonMaxPeaks(std::vector<double>& x, std::vector<double>& y, std::vector<dou
         peakParams.back()[3] = TL_index;
         peakParams.back()[4] = TM_index;
         peakParams.back()[5] = TR_index;
-        peakParams.back()[0] = activation(x, x[TL_index], x[TR_index], x[TM_index]);
+        peakParams.back()[0] = activation(x[TL_index], x[TR_index], x[TM_index]);
         std::vector<double> peak(x.size(),0.0);
         FOKModel(x,peak,x[TM_index],y[TM_index], peakParams.back()[0]);
         transform(peak.begin(),peak.end(),sum.begin(),sum.begin(),std::plus<double>());

@@ -10,15 +10,14 @@
 #include <getopt.h>
 #include <string>
 #include <locale>
-#include "Usage.h"
 #include <fstream>
 #include <iomanip>
 #include <stdio.h>
-#include "src/File_Manager.hpp"
-#include "src/batch_handler.hpp"
-#include "src/smartPeakDetect.hpp"
-#include "src/DataSmoothing.hpp"
-#include "src/Levenberg–Marquardt.hpp"
+#include "File_Manager.hpp"
+#include "batch_handler.hpp"
+#include "smartPeakDetect.hpp"
+#include "DataSmoothing.hpp"
+#include "Levenberg–Marquardt.hpp"
 #ifdef WINDOWS
 #include <direct.h>
 #define GetCurrentDir _getcwd
@@ -29,7 +28,7 @@
 
 using namespace std;
 
-int main(int argc, char * argv[]) {
+int main() {
     string dir,start ="n";
     vector<string> filenames,files;
     while(start =="n" || start =="N"){
@@ -37,7 +36,7 @@ int main(int argc, char * argv[]) {
         cin>>dir;
         //string dir = argv[1];
         if(dir.back() == '/') dir.pop_back();
-        filenames,files = batch_handler(dir);
+        files = batch_handler(dir);
         cout<<"Is this correct and would you like to start processing (y/n)?"<<endl;
         cin>>start;
     }
@@ -66,12 +65,15 @@ int main(int argc, char * argv[]) {
             continue;
         }
         remove( dir + "/temp.csv" );
+        cout<<"."<<endl<<"Finding Peaks  ..";
+        cout.flush();
         findPeaks(data.first,data.second, peakParams);
+        cout<<".";
+        cout.flush();
         stats[count].push_back(fileManager.barcode());
         remove( dir + "/temp.csv" );
-        cout<<"."<<endl;
         cout.flush();
-        cout<<"Deconvoluting Glow Peak  .";
+        cout<<endl<<"Deconvoluting Glow Peak  .";
         cout.flush();
         First_Order_Kinetics FOK_Model = *new First_Order_Kinetics(data,peakParams);
         stats[count].push_back(FOK_Model.glow_curve());
@@ -84,10 +86,10 @@ int main(int argc, char * argv[]) {
         vector<vector<double>> returnedPeaks = FOK_Model.return_glow_curve();
         filenames.push_back(filename);
         filename = output_dir +"/"+ filename;
-        fileManager.write(returnedPeaks, filename, count);
-        fileManager.statistics(stats,filenames,output_dir);
+        fileManager.write(returnedPeaks, filename);
         cout<<"----------------------------"<<endl;
         count++;
+        if(count == int(files.size()))fileManager.statistics(stats,filenames,output_dir);
     }
     return 0;
 }

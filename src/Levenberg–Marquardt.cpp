@@ -44,7 +44,7 @@ double First_Order_Kinetics::glow_curve(){
         sum[i] = output;
         integral += output;
     }
-    for(int i = 0; i < (peak_areas.size());++i ){
+    for(int i = 0; i < int(peak_areas.size());++i ){
         if(peak_areas[i]<200.0){
             peak_areas.erase(peak_areas.begin()+i);
             peakParams.erase(peakParams.begin()+i);
@@ -52,7 +52,6 @@ double First_Order_Kinetics::glow_curve(){
         }
     }
     glow_curves.push_back(sum);
-    glow_curves.push_back(count_data);
     for(int i = 0; i < int(peakParams.size()); ++i){
         cout<<"----- Area Under Curve #"<<i+1<<" :"<<peak_areas[i]<<" -----"<<endl;
     }
@@ -92,7 +91,7 @@ void First_Order_Kinetics::LevenbergMarquardt(const vector<double> &curve, vecto
         for(int param_num = 0; param_num < 3 ; ++param_num){
             vector<double> temp_params;
             vector<double> temp_output(curve.size(), 0.0);
-            for(int i = 0; i < params.size();++i){
+            for(int i = 0; i < int(params.size());++i){
                 temp_params.push_back(params[i][param_num]);
             }
             int other_param1 = 0;
@@ -156,7 +155,7 @@ void First_Order_Kinetics::LevenbergMarquardt(const vector<double> &curve, vecto
                 vector<double> Jf_error = vec_matrix_multi(Jf_T,error);
                 vector<double> delta = vec_matrix_multi(H_lm,Jf_error);
                 vector<double> t_params = temp_params;
-                for(int x = 0; x < delta.size(); ++x){
+                for(int x = 0; x < int(delta.size()); ++x){
                     t_params[x] += delta[x];
                 }
                 double integral = 0.0;

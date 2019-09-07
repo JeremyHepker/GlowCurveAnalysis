@@ -91,7 +91,7 @@ pair<std::vector<double>,std::vector<double>> File_Manager::read(){
 }
 
 //This is a function to write the output to a new CSV file.
-void File_Manager::write(std::vector<std::vector<double>> glow_curves, std::string output_name, int count){
+void File_Manager::write(std::vector<std::vector<double>> glow_curves, std::string output_name){
     ofstream file;
     output_name += "_output.csv";
     file.open(output_name);
@@ -100,17 +100,17 @@ void File_Manager::write(std::vector<std::vector<double>> glow_curves, std::stri
         exit(1);
     }
     file<<"temp,count_original";
-    for(int j = 0; j<glow_curves.size();++j){
+    for(int j = 0; j<int(glow_curves.size());++j){
         std::string ster = "count_" + std::to_string(j);
         file<<","<<ster;
     }
     file<<",\n";
     file.setf(ios_base::fixed);
     file<<setprecision(5);
-    for(int i = 0; i<raw_temp_data.size();++i){
+    for(int i = 0; i<int(raw_temp_data.size());++i){
         file << raw_temp_data[i]<<",";
         file << raw_count_data[i];
-        for(int j = 0; j<glow_curves.size();++j){
+        for(int j = 0; j<int(glow_curves.size());++j){
             file<<","<<double(glow_curves[j][i]);
         }
         file<<",\n";
@@ -151,6 +151,7 @@ void File_Manager::statistics(std::vector<std::vector<double>> stats, std::vecto
         }
         myfile<<"\n";
     }
+    count = 0;
     myfile.close();
 }
 
