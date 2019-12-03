@@ -77,6 +77,21 @@ make all
 - Add your files to the src directory ONLY
 - Edit the makefile, add any .cpp files (src/< filename >) to BOTH lines 14 and 16, with the other two list of files. 
 
+## Test Data
+- There is test data provided in the testSpectra directory, it is a bit of a mess but there is alot. To run the data in this folder AFTER BUILD..  
+```
+./GCA testSpectra/< desired test directory > 
+```
+- Example
+```
+./GCA testSpectra/TLD_100
+```
+## Getting Better Results
+- To yeild better results quick 20< line python programs can be used to scan over directories of csv files and smooth data. 
+
+## Plotting Results
+- I used a wide variety of short 20< line python programs to plot entire directories of output data. Don't get wrapped up in c++ potting. 
+
 ## FAQ
 - No one has used this but me there are not FAQs. 
 - Reach out at jhepker@umich.edu with questions and concerns 
