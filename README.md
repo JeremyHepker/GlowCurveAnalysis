@@ -44,6 +44,8 @@ Most GCA software is written using Matlab or other similar tools or libraries fo
 	-	Almost any errors that occur at compile time are a result of improper boost download. Follow the instructions. 
 
 ## Run the Program 
+### Tutorial Video 
+https://youtu.be/BXK87Xa5mrY
 - Clone the GitHub Repo onto your computer
 -- Open your terminal
 -- Navegate to your desired directory
