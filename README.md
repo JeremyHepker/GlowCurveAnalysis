@@ -80,11 +80,11 @@ make all
 ## Test Data
 - There is test data provided in the testSpectra directory, it is a bit of a mess but there is alot. To run the data in this folder AFTER BUILD..  
 ```
-./GCA testSpectra/< desired test directory > 
+testSpectra/< desired test directory > 
 ```
 - Example
 ```
-./GCA testSpectra/TLD_100
+testSpectra/TLD_100
 ```
 ## Getting Better Results
 - To yeild better results quick 20< line python programs can be used to scan over directories of csv files and smooth data. 
