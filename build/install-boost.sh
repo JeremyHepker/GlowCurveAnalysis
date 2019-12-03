@@ -2,57 +2,35 @@
 #
 # Usage: ./install-boost <version: x.xx.x>
 
-: ${PATH:=/usr/local/include/boost_1_62_0/}
-: ${LD_LIBRARY_PATH:=}
+: ${PATH:=/usr/}
 
-if [ "$#" -ne 1 ]; then
-  echo "Usage: $0 <version: 1.69.0>"
-  exit 1
-fi
-
-VERSION="$1"
-VERSION_UNDERSCORES="$(echo "$VERSION" | sed 's/\./_/g')"
-TARBALL="boost_${VERSION_UNDERSCORES}.tar.gz"
-DOWNLOAD_URL="http://sourceforge.net/projects/boost/files/boost/${VERSION}/${TARBALL}/download"
-
-if [ -z "${GCC_HOME}" ]; then
-  echo "[FATAL] \$GCC_HOME is not set"
-  exit 1
-fi
+TARBALL="boost_1_62_0.tar.gz"
+DOWNLOAD_URL="https://sourceforge.net/projects/boost/files/boost/1.62.0/boost_1_62_0.tar.gz/download"
 
 GCC_VERSION="$(gcc -dumpversion)"
 
-echo "[INFO] Boost '$VERSION'"
-echo "[INFO] GCC   '$GCC_VERSION'"
-
 # Installation location
-: ${PREFIX:=${VERSION_UNDERSCORES}/gcc/${GCC_VERSION}}
 
-mkdir -p "$PREFIX"
-cd "$PREFIX"
+cd "/usr/"
 PREFIX="$(pwd)"
 
 echo "[INFO] Installing to '$PREFIX'"
 
-echo "[INFO] Creating workspace in '$(pwd)'"
-mkdir -p workspace
-cd workspace
-
-SOURCE="$(pwd)/boost_${VERSION_UNDERSCORES}"
+SOURCE="$(pwd)/boost_boost_1_62_0/"
 
 #-------------------------------------------------------------------------------
 # Download and unpack
 #-------------------------------------------------------------------------------
 if [ ! -f "$TARBALL" ]; then
     echo "[INFO] Downloading '$DOWNLOAD_URL'"
-    wget --no-check-certificate "$DOWNLOAD_URL"
+    sudo curl -O "$DOWNLOAD_URL"
 else
     echo "[INFO] '$TARBALL' already exists. Skipping..."
 fi
 
 if [ ! -d "$SOURCE" ]; then
     echo "[INFO] Unpacking $TARBALL"
-    tar xzf "$TARBALL"
+    sudo tar xzf "$TARBALL"
 else
     echo "[INFO] '$SOURCE' already exists. Skipping..."
 fi
